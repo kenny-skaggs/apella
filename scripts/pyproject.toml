@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "scripts"
+version = "0.1.0"
+description = ""
+authors = ["Kenny Skaggs <kenneth.d.skaggs@vumc.org>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+typer = "^0.4.0"
+tool-kit = {git = "git@github.com:kenny-skaggs/tool_kit.git", rev = "main"}
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
