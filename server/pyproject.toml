@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "server"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+python-dotenv = "^0.19.2"
+alembic = "^1.7.5"
+tool-kit = {git = "git@github.com:kenny-skaggs/tool_kit.git", rev = "main"}
+psycopg2 = "^2.9.3"
+Flask = "^2.0.2"
+Flask-RESTful = "^0.3.9"
+Flask-Cors = "^3.0.10"
+beautifulsoup4 = "^4.10.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
