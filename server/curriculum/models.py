@@ -1,3 +1,4 @@
+from enum import Enum
 
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
@@ -30,7 +31,6 @@ class Lesson(BaseModel):
     name = sa.Column(sa.String(200))
 
     unit_id = sa.Column(sa.Integer, sa.ForeignKey(Unit.id))
-
     unit = relationship(Unit, backref='lessons')
 
 
@@ -39,27 +39,35 @@ class Page(BaseModel):
     __tablename__ = 'page'
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
+    html = sa.Column(sa.String(2000))
     # TODO: order within a lesson
 
     lesson_id = sa.Column(sa.Integer, sa.ForeignKey(Lesson.id))
+    lesson = relationship(Lesson, backref='pages')
 
-    relationship(Lesson, backref='pages')
+
+class QuestionType(Enum):
+    INLINE_TEXT = 1
+    INLINE_DROPDOWN = 2
+    PARAGRAPH = 3
+    CHOICE = 4
 
 
-class Section(BaseModel):
-    """
-    Semi-atomic unit of a lesson (can still be composed of other elements).
-    Sections would be grouped within a page of a lesson and shown in order, but can contain
-    flexible layouts of sub-elements.
-    """
-    __tablename__ = 'section'
+class Question(BaseModel):
+    """A place within a lesson's page that the student can provide a response"""
+    __tablename__ = 'question'
     id = sa.Column(sa.Integer, primary_key=True)
-    text_html = sa.Column(sa.String(2000))
-    # TODO: order within a page
-    #  want to be able to have sections that are just text, but also sections that contain single/multi
-    #  select options that would be answered (OptionGroup objects that define their options and whether
-    #  multiple can be clicked?), free-text fields for answering response_fields, etc...
+    type = sa.Column(sa.Enum(QuestionType))
 
     page_id = sa.Column(sa.Integer, sa.ForeignKey(Page.id))
+    page = relationship(Page, backref='questions')
 
-    relationship(Page, backref='sections')
+
+class Option(BaseModel):
+    """Possible options to be selected for a question"""
+    __tablename__ = 'option'
+    id = sa.Column(sa.Integer, primary_key=True)
+    text = sa.Column(sa.String(2000))
+
+    question_id = sa.Column(sa.Integer, sa.ForeignKey(Question.id))
+    question = relationship(Question, backref='options')

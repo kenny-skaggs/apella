@@ -1,9 +1,12 @@
 const buildPlugin = function ($) {
     'use strict';
     let trumbowyg_core = undefined;
+    let next_temp_id = 0;
 
     function saveTextOptionsToElement($modal, $element) {
-        $element.attr('options', JSON.stringify($modal.find('input').map((i, el) => el.value).get()));
+        $element.attr('options', JSON.stringify($modal.find('input').map((i, el) => {
+            return {text: el.value}
+        }).get()));
     }
 
     function loadTextOptionsIntoModal($modal, $element) {
@@ -11,7 +14,7 @@ const buildPlugin = function ($) {
         if (options !== undefined) {
             options = JSON.parse(options);
             $modal.find('input').each((i, input) => $(input).parent().remove());
-            options.forEach((option) => $modal.find('section').append($('<p><input value="' + option + '" /></p>')))
+            options.forEach((option) => $modal.find('section').append($('<p><input value="' + option.text + '" /></p>')))
         }
     }
 
@@ -99,6 +102,7 @@ const buildPlugin = function ($) {
                     $questionNode.addClass('wysiwyg_question');
                     $questionNode.addClass(option.id);
                     $questionNode.attr('contenteditable', 'false');
+                    $questionNode.attr('temp-id', next_temp_id++);
 
                     trumbowyg.saveRange();
                     // trumbowyg.range.deleteContents();

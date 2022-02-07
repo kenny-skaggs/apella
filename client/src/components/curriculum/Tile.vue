@@ -1,6 +1,8 @@
 <template>
   <div class="curriculum-tile">
-    <b-button class="edit-button" icon-pack="fas" icon-left="edit" @click.stop='editClicked'></b-button>
+    <b-button class="edit-button" icon-pack="fas" icon-left="edit"
+              v-if='editable' @click.stop='editClicked'>
+    </b-button>
     <span>
       <slot></slot>
     </span>
@@ -14,7 +16,8 @@ export default {
     editClicked() {
       this.$emit('edit');
     }
-  }
+  },
+  props: ['editable']
 }
 </script>
 

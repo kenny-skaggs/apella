@@ -1,11 +1,12 @@
 <template>
   <div>
     <div class="tile-container">
-      <Tile v-for='lesson in lessons' :key='lesson.id' @edit='editItemClicked(lesson)'
+      <Tile v-for='lesson in lessons' :key='lesson.id'
+            :editable='userIsAuthor' @edit='editItemClicked(lesson)'
             @click.native='itemSelected(lesson)'>
         {{ lesson.name }}
       </Tile>
-      <Tile @click.native='newItemClicked'>
+      <Tile @click.native='newItemClicked' v-if='userIsAuthor'>
         <div style="text-align: center">
           <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
         </div>
@@ -23,6 +24,7 @@
 <script>
 import EditItemModal from "../components/curriculum/EditItemModal";
 import Tile from '../components/curriculum/Tile';
+import AuthCheckMixin from "../mixins/AuthCheckMixin";
 
 export default {
   name: 'LessonList',
@@ -53,7 +55,7 @@ export default {
       this.showEditModal = true;
     },
     itemSelected(item) {
-      console.log('selected lesson', item)
+      this.$router.push({name: 'lesson_detail', params: { lessonId: item.id }});
     }
   },
   data() {
@@ -72,6 +74,7 @@ export default {
   props: ['unitId'],
   components: {
     EditItemModal, Tile
-  }
+  },
+  mixins: [AuthCheckMixin]
 }
 </script>

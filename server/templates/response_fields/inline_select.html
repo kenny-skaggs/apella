@@ -1,7 +1,7 @@
 <span class="select">
     <select>
         {% for option in options %}
-            <option>{{ option }}</option>
+            <option option-id="{{ option.id }}">{{ option.text }}</option>
         {% endfor %}
     </select>
 </span>

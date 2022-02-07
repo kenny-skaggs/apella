@@ -50,7 +50,6 @@ export default {
   },
   methods: {
     htmlChanged() {
-      console.log('saved');
       v_editor_component_handle.$emit('input', $('#wizzy').html());
     }
   },

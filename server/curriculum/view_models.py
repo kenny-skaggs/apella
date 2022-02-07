@@ -1,40 +1,58 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
+
+from curriculum import models
 
 
-@dataclass
-class Course:
-    id: int
-    name: str
-    units: List['Unit'] = None
-
+class _Serializable:
     def to_dict(self):
         result = self.__dict__
-        if self.units:
-            result['units'] = [unit.to_dict() for unit in self.units]
+        for field_name, value in result.items():
+            if isinstance(value, list):
+                result[field_name] = [item.to_dict() for item in value]
         return result
 
 
 @dataclass
-class Unit:
+class Course(_Serializable):
+    id: int
+    name: str
+    units: List['Unit'] = None
+
+
+@dataclass
+class Unit(_Serializable):
     id: int
     name: str
     course_id: int = None
     lessons: List['Lesson'] = None
 
-    def to_dict(self):
-        result = self.__dict__
-        if self.lessons:
-            result['lessons'] = [lesson.to_dict() for lesson in self.lessons]
-        return result
-
 
 @dataclass
-class Lesson:
+class Lesson(_Serializable):
     id: int
     name: str
     unit_id: int = None
+    pages: List['Page'] = None
 
-    def to_dict(self):
-        result = self.__dict__
-        return result
+
+@dataclass
+class Page(_Serializable):
+    id: int
+    name: str
+    lesson_id: int = None
+    html: str = ''
+
+
+@dataclass
+class Question(_Serializable):
+    id: int
+    type: models.QuestionType
+    options: List['Option'] = None
+    page_id: int = None
+
+
+@dataclass
+class Option(_Serializable):
+    id: Optional[int]
+    text: str

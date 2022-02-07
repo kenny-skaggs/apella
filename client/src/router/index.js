@@ -3,13 +3,15 @@ import VueRouter from 'vue-router';
 import CourseList from "../views/CourseList";
 import UnitList from "../views/UnitList";
 import LessonList from "../views/LessonList";
+import Lesson from "../views/Lesson";
+import Login from "../views/Login";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
+    name: 'dashboard',
     path: '/',
-    name: 'CourseList',
     component: CourseList,
   },
   {
@@ -22,6 +24,18 @@ const routes = [
     name: 'unit_detail',
     path: '/unit/:unitId',
     component: LessonList,
+    props: true
+  },
+  {
+    name: 'lesson_detail',
+    path: '/lesson/:lessonId',
+    component: Lesson,
+    props: true
+  },
+  {
+    name: 'login',
+    path: '/login',
+    component: Login,
     props: true
   }
 ];

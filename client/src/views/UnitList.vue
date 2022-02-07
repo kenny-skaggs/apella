@@ -1,10 +1,12 @@
 <template>
   <div>
     <div class="tile-container">
-      <Tile v-for='unit in units' :key='unit.id' @edit='editItemClicked(unit)' @click.native='itemSelected(unit)'>
+      <Tile v-for='unit in units' :key='unit.id'
+            :editable='userIsAuthor' @edit='editItemClicked(unit)'
+            @click.native='itemSelected(unit)'>
         {{ unit.name }}
       </Tile>
-      <Tile @click.native='newItemClicked'>
+      <Tile @click.native='newItemClicked' v-if='userIsAuthor'>
         <div style="text-align: center">
           <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
         </div>
@@ -22,6 +24,7 @@
 <script>
 import EditItemModal from "../components/curriculum/EditItemModal";
 import Tile from '../components/curriculum/Tile';
+import AuthCheckMixin from "../mixins/AuthCheckMixin";
 
 export default {
   name: 'UnitList',
@@ -52,7 +55,7 @@ export default {
       this.showEditModal = true;
     },
     itemSelected(item) {
-      this.$router.push({name: 'unit_detail', params: {unitId: item.id }});
+      this.$router.push({name: 'unit_detail', params: { unitId: item.id }});
     }
   },
   data() {
@@ -71,6 +74,7 @@ export default {
   props: ['courseId'],
   components: {
     EditItemModal, Tile
-  }
+  },
+  mixins: [AuthCheckMixin]
 }
 </script>

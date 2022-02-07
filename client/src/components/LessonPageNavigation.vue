@@ -3,7 +3,7 @@
     <div class="pageItem" :class='{selected: page.id === selectedPageId}'
          v-for='page in pages' :key='page.id' @click='pageClicked(page)'>
       <span>{{ page.name }}</span>
-      <b-tag rounded type="is-danger" @click.stop.prevent='$emit("deletePage", page.id)'>
+      <b-tag v-if='editable' rounded type="is-danger" @click.stop.prevent='$emit("deletePage", page.id)'>
         &cross;
       </b-tag>
     </div>
@@ -13,7 +13,7 @@
 <script>
 export default {
   name: 'LessonPageNavigation',
-  props: ['pages', 'selectedPageId'],
+  props: ['pages', 'selectedPageId', 'editable'],
   methods: {
     pageClicked(page) {
       this.$emit('pageClicked', page);
