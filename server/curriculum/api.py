@@ -62,7 +62,7 @@ class Lessons(Resource):
             render_target = RenderTarget.RESPONDING
         lesson_renderer = LessonRenderer(render_target=render_target)
         for page in lesson_view_model.pages:
-            page.html = lesson_renderer.process_html(page.html)
+            page.html = lesson_renderer.process_html(page.html, user_id=user.identity, lesson_id=lesson_id)
 
         return lesson_view_model.to_dict()
 

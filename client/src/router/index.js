@@ -3,7 +3,7 @@ import VueRouter from 'vue-router';
 import CourseList from "../views/CourseList";
 import UnitList from "../views/UnitList";
 import LessonList from "../views/LessonList";
-import Lesson from "../views/Lesson";
+import Lesson from "../views/Lesson/LessonController";
 import Login from "../views/Login";
 
 Vue.use(VueRouter);

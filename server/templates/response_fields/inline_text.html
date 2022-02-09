@@ -1,1 +1,3 @@
-<input />
+<input onkeyup='$(this).trigger("response-input", this.value)' questionId="{{ question_id }}" answerType="text"
+    value="{{ answer.text if answer and answer.text else '' }}"
+/>

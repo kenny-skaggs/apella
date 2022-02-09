@@ -1,7 +1,10 @@
 <span class="select">
-    <select>
+    <select onchange='$(this).trigger("response-input", [[this.value]])' questionId="{{ question_id }}" answerType="option">
         {% for option in options %}
-            <option option-id="{{ option.id }}">{{ option.text }}</option>
+            <option value="{{ option.id }}"
+                    {{ 'selected' if answer and (option.id in answer.selected_option_ids) else '' }} >
+                {{ option.text }}
+            </option>
         {% endfor %}
     </select>
 </span>

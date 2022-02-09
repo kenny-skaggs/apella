@@ -1,28 +1,13 @@
-from collections.abc import Callable
-from typing import List, Optional, TypeVar
 
+from typing import List
+
+from core import needs_session
 from curriculum import models, view_models
-from tool_kit.external import DatabaseConnection
-from sqlalchemy.orm import Session
-
-_db = DatabaseConnection()
-
-
-def _needs_session(func):
-    def wrapper(*args, **kwargs):
-        if 'session' not in kwargs:
-            with _db.get_new_session() as session:
-                kwargs['session'] = session
-                return func(*args, **kwargs)
-        else:
-            return func(*args, **kwargs)
-
-    return wrapper
 
 
 class CourseRepository:
     @classmethod
-    @_needs_session
+    @needs_session
     def get_all(cls, session) -> List[view_models.Course]:
         db_courses = session.query(models.Course).all()
         return [
@@ -33,7 +18,7 @@ class CourseRepository:
             for course in db_courses]
 
     @classmethod
-    @_needs_session
+    @needs_session
     def get_by_id(cls, _id, session) -> view_models.Course:
         course = session.query(models.Course).get(_id)
         return view_models.Course(
@@ -46,7 +31,7 @@ class CourseRepository:
         )
 
     @classmethod
-    @_needs_session
+    @needs_session
     def upsert(cls, course: view_models.Course, session) -> int:
         db_course = session.query(models.Course).get(course.id)
         if not db_course:
@@ -61,7 +46,7 @@ class CourseRepository:
 
 class UnitRepository:
     @classmethod
-    @_needs_session
+    @needs_session
     def get_by_id(cls, _id, session):
         unit = session.query(models.Unit).get(_id)
         return view_models.Unit(
@@ -74,7 +59,7 @@ class UnitRepository:
         )
 
     @classmethod
-    @_needs_session
+    @needs_session
     def upsert(cls, unit: view_models.Unit, session):
         db_unit = session.query(models.Unit).get(unit.id)
         if not db_unit:
@@ -89,7 +74,7 @@ class UnitRepository:
 
 class LessonRepository:
     @classmethod
-    @_needs_session
+    @needs_session
     def get_by_id(cls, _id, session):
         lesson = session.query(models.Lesson).get(_id)
         return view_models.Lesson(
@@ -102,7 +87,7 @@ class LessonRepository:
         )
 
     @classmethod
-    @_needs_session
+    @needs_session
     def upsert(cls, lesson: view_models.Lesson, session):
         db_lesson = session.query(models.Lesson).get(lesson.id)
         if not db_lesson:
@@ -117,7 +102,7 @@ class LessonRepository:
 
 class PageRepository:
     @classmethod
-    @_needs_session
+    @needs_session
     def upsert(cls, page: view_models.Page, session):
         db_page = session.query(models.Page).get(page.id)
         if not db_page:
@@ -133,7 +118,20 @@ class PageRepository:
 
 class QuestionRepository:
     @classmethod
-    @_needs_session
+    @needs_session
+    def get(cls, question_id: int, session):
+        db_question = session.query(models.Question).get(question_id)
+        return view_models.Question(
+            id=db_question.id,
+            options=[
+                view_models.Option(id=option.id, text=option.text)
+                for option in (db_question.options or [])
+            ],
+            type=db_question.type
+        )
+
+    @classmethod
+    @needs_session
     def upsert(cls, question: view_models.Question, session):
         db_question = session.query(models.Question).get(question.id)
         if not db_question:

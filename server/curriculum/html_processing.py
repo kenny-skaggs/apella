@@ -5,8 +5,9 @@ import json
 from bs4 import BeautifulSoup, Tag
 from flask import render_template
 
-from storage import repository
 from curriculum import models, view_models
+from storage import repository
+from responses import repository as responses_repository
 
 
 class RenderTarget(Enum):
@@ -49,35 +50,77 @@ class _HtmlProcessor(ABC):
     def _process_inline_dropdown_node(self, node):
         ...
 
+    @classmethod
+    def _set_question_id(cls, node: Tag, question_id: int):
+        node['question_id'] = question_id
+
+    @classmethod
+    def _get_question_id(cls, node: Tag):
+        return node.get('question_id')
+
 
 class LessonRenderer(_HtmlProcessor):
     def __init__(self, render_target: RenderTarget):
         self.render_target = render_target
+        self.question_answer_map = {}
 
-    def process_html(self, html: str):
+    def process_html(self, html: str, user_id: int, lesson_id: int):
         if self.render_target == RenderTarget.AUTHORING:
             return html
-        else:
-            return super(LessonRenderer, self).process_html(html)
 
-    def _process_choice_node(self, node):
-        display_html = render_template('response_fields/multiple_choice.html')
+        if self.render_target == RenderTarget.RESPONDING:
+            self.question_answer_map = responses_repository.AnswerRepository.user_answer_map_for_lesson(
+                user_id=user_id,
+                lesson_id=lesson_id
+            )
+            # TODO: use question ids to populate answers when loading
+
+        return super(LessonRenderer, self).process_html(html)
+
+    def _process_choice_node(self, node: Tag):
+        question_id = self._get_question_id(node)
+        answer = self.question_answer_map.get(int(question_id))
+        display_html = render_template(
+            'response_fields/multiple_choice.html',
+            question_id=question_id,
+            answer=answer
+        )
         display_html = BeautifulSoup(display_html, 'html.parser')
         node.replace_with(next(iter(display_html)))
 
-    def _process_paragraph_node(self, node):
-        display_html = render_template('response_fields/paragraph_text.html')
+    def _process_paragraph_node(self, node: Tag):
+        question_id = self._get_question_id(node)
+        answer = self.question_answer_map.get(int(question_id))
+        display_html = render_template(
+            'response_fields/paragraph_text.html',
+            question_id=question_id,
+            answer=answer
+        )
         display_html = BeautifulSoup(display_html, 'html.parser')
         node.replace_with(next(iter(display_html)))
 
-    def _process_inline_text_node(self, node):
-        display_html = render_template('response_fields/inline_text.html')
+    def _process_inline_text_node(self, node: Tag):
+        question_id = self._get_question_id(node)
+        answer = self.question_answer_map.get(int(question_id))
+        display_html = render_template(
+            'response_fields/inline_text.html',
+            question_id=question_id,
+            answer=answer
+        )
         display_html = BeautifulSoup(display_html, 'html.parser')
         node.replace_with(next(iter(display_html)))
 
-    def _process_inline_dropdown_node(self, node):
+    def _process_inline_dropdown_node(self, node: Tag):
+        question_id = self._get_question_id(node)
+        answer = self.question_answer_map.get(int(question_id))
+        print(answer)
         option_list = json.loads(node['options'])
-        display_html = render_template('response_fields/inline_select.html', options=option_list)
+        display_html = render_template(
+            'response_fields/inline_select.html',
+            options=option_list,
+            question_id=question_id,
+            answer=answer
+        )
         display_html = BeautifulSoup(display_html, 'html.parser')
         node.replace_with(next(iter(display_html)))
 
@@ -151,11 +194,3 @@ class QuestionParser(_HtmlProcessor):
             type=_type,
             page_id=self.page_id
         )
-
-    @classmethod
-    def _set_question_id(cls, node: Tag, question_id: int):
-        node['question_id'] = question_id
-
-    @classmethod
-    def _get_question_id(cls, node: Tag):
-        return node.get('question_id')

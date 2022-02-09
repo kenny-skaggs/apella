@@ -4,6 +4,7 @@ from alembic import context
 
 from core import db_connection
 from curriculum.models import BaseModel
+from responses import models  # TODO: find a better way
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

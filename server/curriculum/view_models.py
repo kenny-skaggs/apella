@@ -1,27 +1,19 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from core import Serializable
 from curriculum import models
 
 
-class _Serializable:
-    def to_dict(self):
-        result = self.__dict__
-        for field_name, value in result.items():
-            if isinstance(value, list):
-                result[field_name] = [item.to_dict() for item in value]
-        return result
-
-
 @dataclass
-class Course(_Serializable):
+class Course(Serializable):
     id: int
     name: str
     units: List['Unit'] = None
 
 
 @dataclass
-class Unit(_Serializable):
+class Unit(Serializable):
     id: int
     name: str
     course_id: int = None
@@ -29,7 +21,7 @@ class Unit(_Serializable):
 
 
 @dataclass
-class Lesson(_Serializable):
+class Lesson(Serializable):
     id: int
     name: str
     unit_id: int = None
@@ -37,7 +29,7 @@ class Lesson(_Serializable):
 
 
 @dataclass
-class Page(_Serializable):
+class Page(Serializable):
     id: int
     name: str
     lesson_id: int = None
@@ -45,7 +37,7 @@ class Page(_Serializable):
 
 
 @dataclass
-class Question(_Serializable):
+class Question(Serializable):
     id: int
     type: models.QuestionType
     options: List['Option'] = None
@@ -53,6 +45,6 @@ class Question(_Serializable):
 
 
 @dataclass
-class Option(_Serializable):
+class Option(Serializable):
     id: Optional[int]
     text: str

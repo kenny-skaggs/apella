@@ -12,6 +12,9 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
+import ioClient from 'socket.io-client';
+import VueSocketIO from "vue-socket.io";
+
 Vue.use(Buefy)
 
 axios.defaults.headers['Access-Control-Allow-Origin'] = '*'
@@ -19,6 +22,20 @@ axios.defaults.baseURL = 'http://localhost:5000'
 Vue.use(VueAxios, axios)
 
 Vue.config.productionTip = false
+
+
+const connectionOptions = {
+  connection: ioClient('http://localhost:5000', {
+    cors: {
+      origin: '*'
+    },
+    extraHeaders: {
+      Authorization: 'Bearer' + store.state.authToken
+    }
+  }),
+  debug: true
+}
+Vue.use(new VueSocketIO(connectionOptions));
 
 new Vue({
   router,

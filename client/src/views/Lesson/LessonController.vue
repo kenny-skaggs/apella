@@ -16,17 +16,18 @@
         </b-button>
       </template>
       <template v-else>
-        <div v-html='selectedPage.html' />
+        <LessonStudent :lesson-html='selectedPage.html' />
       </template>
     </div>
   </div>
 </template>
 
 <script>
-import PageNavigation from '../components/LessonPageNavigation.vue';
-import HtmlEditor from "../components/editor/HtmlEditor";
-import AuthCheckMixin from "../mixins/AuthCheckMixin";
-import {debounce} from "vue-debounce";
+import PageNavigation from '../../components/LessonPageNavigation.vue';
+import HtmlEditor from "../../components/editor/HtmlEditor";
+import AuthCheckMixin from "../../mixins/AuthCheckMixin";
+import LessonStudent from "./LessonStudent";
+
 
 export default {
   name: 'Lesson',
@@ -82,14 +83,15 @@ export default {
   props: ['lessonId'],
   components: {
     HtmlEditor,
-    PageNavigation
+    LessonStudent,
+    PageNavigation,
   },
   mixins: [AuthCheckMixin]
 }
 </script>
 
 <style lang="sass">
-@import "../../node_modules/bulmaswatch/darkly/variables"
+@import "../../../node_modules/bulmaswatch/darkly/variables"
 
 .wysiwyg_question
   border: 1px solid $grey-dark
