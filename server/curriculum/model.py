@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from core import Serializable
-from curriculum import models
+from curriculum import schema
 
 
 @dataclass
@@ -39,7 +39,7 @@ class Page(Serializable):
 @dataclass
 class Question(Serializable):
     id: int
-    type: models.QuestionType
+    type: schema.QuestionType
     options: List['Option'] = None
     page_id: int = None
 

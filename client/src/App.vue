@@ -2,9 +2,16 @@
   <div id="app">
     <b-navbar>
       <template #brand>
-        <b-navbar-item><strong>Apella</strong></b-navbar-item>
+        <b-navbar-item :href='$router.resolve({ name: "dashboard" }).href'><strong>Apella</strong></b-navbar-item>
+      </template>
+      <template #start>
+        <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "class_management" }).href'>Classes</b-navbar-item>
+        <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "account_management" }).href'>Accounts</b-navbar-item>
       </template>
       <template #end v-if='isLoggedIn'>
+        <b-navbar-item v-if='userIsTeacher'>
+          <ClassSelector />
+        </b-navbar-item>
         <b-navbar-dropdown>
           <template #label>
             <b-icon pack="fas" icon="user"></b-icon>
@@ -22,8 +29,12 @@
 </template>
 
 <script>
+import AuthCheckMixin from "./mixins/AuthCheckMixin";
+import ClassSelector from "./components/ClassSelector";
+
 export default {
   name: 'App',
+  components: {ClassSelector},
   created() {
     this.$http.interceptors.request.use((config) => {
       const token = this.$store.state.authToken;
@@ -46,6 +57,8 @@ export default {
     logoutClicked() {
       this.$store.commit('clearAuth');
       this.$router.push({name: 'login'});
+
+      // TODO: need to disconnect from socket server
     }
   },
   computed: {
@@ -58,7 +71,8 @@ export default {
     user() {
       return this.$store.state.user;
     }
-  }
+  },
+  mixins: [AuthCheckMixin]
 }
 </script>
 

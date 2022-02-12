@@ -5,8 +5,7 @@ import json
 from bs4 import BeautifulSoup, Tag
 from flask import render_template
 
-from curriculum import models, view_models
-from storage import repository
+from curriculum import schema, model, repository
 from responses import repository as responses_repository
 
 
@@ -130,25 +129,36 @@ class QuestionParser(_HtmlProcessor):
 
     def __init__(self, page_id: int):
         self.page_id = page_id
-        self.id_resolution_map = {}
+        self.id_resolution_map = {
+            'questions': {},
+            'options': {}
+        }
 
     def _process_choice_node(self, node):
         option_list = json.loads(node['options'])
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=models.QuestionType.CHOICE,
+            _type=schema.QuestionType.CHOICE,
         )
         question.options = [
-            view_models.Option(id=None, text=option)
+            model.Option(id=option['id'], text=option['html'])
             for option in option_list
         ]
 
-        self._upsert_and_finalize(question=question, node=node)
+        question = self._upsert_and_finalize(question=question, node=node)
+
+        for index, option in enumerate(option_list):
+            if str(option['id']).startswith('temp-option-'):
+                self.id_resolution_map['options'][option['id']] = question.options[index].id
+        node['options'] = json.dumps([
+            {'id': option.id, 'html': option.text}
+            for option in question.options
+        ])
 
     def _process_paragraph_node(self, node):
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=models.QuestionType.PARAGRAPH,
+            _type=schema.QuestionType.PARAGRAPH,
         )
 
         self._upsert_and_finalize(question=question, node=node)
@@ -156,7 +166,7 @@ class QuestionParser(_HtmlProcessor):
     def _process_inline_text_node(self, node):
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=models.QuestionType.INLINE_TEXT,
+            _type=schema.QuestionType.INLINE_TEXT,
         )
 
         self._upsert_and_finalize(question=question, node=node)
@@ -165,31 +175,32 @@ class QuestionParser(_HtmlProcessor):
         option_list = json.loads(node['options'])
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=models.QuestionType.INLINE_DROPDOWN,
+            _type=schema.QuestionType.INLINE_DROPDOWN,
         )
         question.options = [
-            view_models.Option(id=None, text=option.get('text'))
+            model.Option(id=None, text=option.get('text'))
             for option in option_list
         ]
 
         question = self._upsert_and_finalize(question=question, node=node)
+
         node['options'] = json.dumps([
             {'text': option.text, 'id': option.id}
             for option in question.options
         ])
 
-    def _upsert_and_finalize(self, question: view_models.Question, node: Tag):
+    def _upsert_and_finalize(self, question: model.Question, node: Tag):
         question = repository.QuestionRepository.upsert(question)
         self._set_question_id(node, question.id)
 
         if 'temp-id' in node.attrs:
-            self.id_resolution_map[node.attrs['temp-id']] = question.id
+            self.id_resolution_map['questions'][node.attrs['temp-id']] = question.id
             del node.attrs['temp-id']
 
         return question
 
-    def _build_question(self, _id: int, _type: models.QuestionType):
-        return view_models.Question(
+    def _build_question(self, _id: int, _type: schema.QuestionType):
+        return model.Question(
             id=_id,
             type=_type,
             page_id=self.page_id

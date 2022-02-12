@@ -14,7 +14,7 @@
         </symbol>
       </svg>
     </div>
-    <div id="wizzy"></div>
+    <div :id='this.wizzyId'></div>
   </div>
 </template>
 
@@ -37,26 +37,36 @@ import 'trumbowyg/dist/plugins/table/ui/trumbowyg.table.min.css'
 import 'trumbowyg/dist/plugins/table/trumbowyg.table.min'
 import buildQuestionPlugin from '@/components/editor/trumbowyg.question.js'
 
-var v_editor_component_handle;
+let v_editor_component_handle;
 
 export default {
   name: 'HtmlEditor',
-  props: ['value', 'pageId'],
+  props: {
+    value: String,
+    pageId: Number,
+    allowQuestionInsert: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       currentPageId: undefined,
-      currentPageHtml: ''
+      currentPageHtml: '',
+      wizzyId: this.$store.getters.nextUniqueId()
     }
   },
   methods: {
     htmlChanged() {
-      v_editor_component_handle.$emit('input', $('#wizzy').html());
+      this.$emit('input', $(this.wizzySelector).html());
+    },
+    questionClicked(event, questionElement) {
+      this.$emit('questionClicked', questionElement);
     }
   },
   mounted() {
     v_editor_component_handle = this;
 
-    buildQuestionPlugin($);
     $.trumbowyg.svgPath = icons;
     MathJax.Hub.Config({
       tex2jax: {
@@ -66,7 +76,14 @@ export default {
         ]
       }
     });
-    $('#wizzy').trumbowyg({
+
+    let insertPluginsAvailable = ['link', 'table', 'insertImage', 'mathml'];
+    if (this.allowQuestionInsert) {
+      buildQuestionPlugin($);
+      insertPluginsAvailable.push('question');
+    }
+
+    $(this.wizzySelector).trumbowyg({
       autogrow: true,
       btns: [
           ['viewHTML'],
@@ -76,23 +93,33 @@ export default {
           ['foreColor', 'backColor'],
           ['superscript', 'subscript'],
           ['indent', 'outdent'],
-          ['link', 'table', 'insertImage', 'mathml', 'question'],
+          insertPluginsAvailable,
           ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
           ['unorderedList', 'orderedList'],
           ['horizontalRule'],
           ['removeformat']
       ]
     });
-    $('#wizzy').html(this.value);
+    $(this.wizzySelector).html(this.value);
     this.currentPageId = this.pageId;
-    $('#wizzy').on('tbwchange', this.htmlChanged);
+
+    $(this.wizzySelector).on('tbwchange', this.htmlChanged);
+
+    if (this.allowQuestionInsert) {
+      $(this.wizzySelector).on('question-clicked', this.questionClicked);
+    }
+  },
+  computed: {
+    wizzySelector() {
+      return `#${this.wizzyId}`;
+    }
   },
   watch: {
     value(new_html) {
       // used to prevent refreshes of the editor when the html is emitted to the parent
       if (this.pageId !== this.currentPageId) {
         this.currentPageId = this.pageId
-        $('#wizzy').html(new_html);
+        $(this.wizzySelector).html(new_html);
       }
     }
   }

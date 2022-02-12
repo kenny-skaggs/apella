@@ -1,10 +1,9 @@
 from enum import Enum
 
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-BaseModel = declarative_base()
+from general.schema import BaseModel
 
 
 class Course(BaseModel):

@@ -1,9 +1,8 @@
 
-from curriculum import html_processing, view_models
-from storage import repository
+from curriculum import html_processing, model, repository
 
 
-def store_page(page: view_models.Page):
+def store_page(page: model.Page):
     # TODO: have a way to parse/modify and save the html in the same upsert transaction
     upsert_page = repository.PageRepository.upsert(page)
 

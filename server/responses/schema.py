@@ -2,23 +2,24 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 
-from curriculum import models as curriculum_models
-from general import models as general_models
+from curriculum import schema as curriculum_models
+from general import schema as general_schema
+from general.schema import BaseModel
 
 
-class Answer(curriculum_models.BaseModel):  # TODO: there's gotta be a better way to handle the BaseModel
+class Answer(BaseModel):
     __tablename__ = 'answer'
     id = sa.Column(sa.Integer, primary_key=True)
     text = sa.Column(sa.String(2000))
 
-    user_id = sa.Column(sa.Integer, sa.ForeignKey(general_models.User.id))
-    user = relationship(general_models.User, backref='answers')
+    user_id = sa.Column(sa.Integer, sa.ForeignKey(general_schema.User.id))
+    user = relationship(general_schema.User, backref='answers')
 
     question_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_models.Question.id))
     question = relationship(curriculum_models.Question, backref='answers')
 
 
-class AnswerOption(curriculum_models.BaseModel):
+class AnswerOption(BaseModel):
     __tablename__ = 'answer_option'
     id = sa.Column(sa.Integer, primary_key=True)
 

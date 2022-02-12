@@ -26,6 +26,6 @@ class Serializable:
     def to_dict(self):
         result = self.__dict__
         for field_name, value in result.items():
-            if isinstance(value, list):
+            if isinstance(value, list) and len(value) > 0 and hasattr(value[0], 'to_dict'):
                 result[field_name] = [item.to_dict() for item in value]
         return result

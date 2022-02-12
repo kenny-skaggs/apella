@@ -3,9 +3,8 @@ from flask import Blueprint, request
 from flask_restful import Api, Resource
 
 import auth
-from curriculum import service, view_models
+from curriculum import service, model, repository
 from curriculum.html_processing import LessonRenderer, RenderTarget
-from storage import repository
 
 
 class Courses(Resource):
@@ -21,7 +20,7 @@ class Courses(Resource):
     @auth.requires_login
     def post(cls):
         json = request.json
-        course_data = view_models.Course(
+        course_data = model.Course(
             id=json.get('id'),
             name=json['name']
         )
@@ -38,7 +37,7 @@ class Units(Resource):
     @auth.requires_login
     def post(cls):
         json = request.json
-        unit_data = view_models.Unit(
+        unit_data = model.Unit(
             id=json.get('id'),
             name=json['name'],
             course_id=json['course_id']
@@ -70,7 +69,7 @@ class Lessons(Resource):
     @auth.requires_login
     def post(cls):
         json = request.json
-        lesson_data = view_models.Lesson(
+        lesson_data = model.Lesson(
             id=json.get('id'),
             name=json['name'],
             unit_id=json['unit_id']
@@ -84,7 +83,7 @@ class Pages(Resource):
     @auth.requires_roles('author')
     def post(cls):
         json = request.json
-        page_data = view_models.Page(
+        page_data = model.Page(
             id=json.get('id'),
             name=json['name'],
             lesson_id=json['lesson_id'],

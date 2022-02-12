@@ -1,36 +1,12 @@
 const buildPlugin = function ($) {
     'use strict';
-    let trumbowyg_core = undefined;
     let next_temp_id = 0;
-
-    function saveTextOptionsToElement($modal, $element) {
-        $element.attr('options', JSON.stringify($modal.find('input').map((i, el) => {
-            return {text: el.value}
-        }).get()));
-    }
-
-    function loadTextOptionsIntoModal($modal, $element) {
-        let options = $element.attr('options');
-        if (options !== undefined) {
-            options = JSON.parse(options);
-            $modal.find('input').each((i, input) => $(input).parent().remove());
-            options.forEach((option) => $modal.find('section').append($('<p><input value="' + option.text + '" /></p>')))
-        }
-    }
 
     const question_options = [
         {
             id: 'question_choice',
             display: 'Multiple Choice Question',
-            template: '<p>Options for a multiple choice question will appear here.</p>',
-            modalContent: '<section><p><input /></p><p><input /></p><p><input /></p><p><input /></p></section>',
-            modalLoad: function ($modal, $element) {
-                loadTextOptionsIntoModal($modal, $element)
-            },
-            modalSubmit: function ($modal, $element) {
-                saveTextOptionsToElement($modal, $element);
-                trumbowyg_core.$c.trigger('tbwchange');
-            }
+            template: '<p options="[]">Options for a multiple choice question will appear here.</p>'
         },
         {
             id: 'question_paragraph',
@@ -45,54 +21,20 @@ const buildPlugin = function ($) {
         {
             id: 'question_inline_dropdown',
             display: 'Inline Dropdown',
-            template: '<span>a dropdown field to select an option will appear here</span>',
-            modalContent: '<section><p><input /></p><p><input /></p><p><input /></p><p><input /></p></section>',
-            modalLoad: function ($modal, $element) {
-                loadTextOptionsIntoModal($modal, $element)
-            },
-            modalSubmit: function ($modal, $element) {
-                saveTextOptionsToElement($modal, $element);
-                trumbowyg_core.$c.trigger('tbwchange');
-            }
+            template: '<span>a dropdown field to select an option will appear here</span>'
         }
     ]
 
     question_options.forEach((option) => {
         $('body').on('click', '.wysiwyg_question.' + option.id, function (event) {
             const element = event.target;
+            const trumbowyg_core = $(element).closest('.trumbowyg-editor').data('trumbowyg');
 
-            const $modal = trumbowyg_core.openModal(
-                'Configure Response Field',
-                option.modalContent || '' + '<p><button class="delete-question">Delete Question</button></p>'
-            );
-
-            $modal.on('click', '.delete-question', function (event) {
-                event.preventDefault();
-                element.remove();
-                trumbowyg_core.$c.trigger('tbwchange');
-                trumbowyg_core.closeModal();
-            });
-
-            $modal.on('tbwconfirm', function(e){
-                e.preventDefault();
-                trumbowyg_core.closeModal();
-                if (option.modalSubmit) {
-                    option.modalSubmit($modal, $(element));
-                }
-            });
-            $modal.on('tbwcancel', function(e){
-                trumbowyg_core.closeModal();
-            });
-
-            if (option.modalLoad) {
-                option.modalLoad($modal, $(element));
-            }
+            trumbowyg_core.$c.trigger('question-clicked', element);
         });
     });
 
     function buildButtonDef (trumbowyg) {
-        trumbowyg_core = trumbowyg;
-
         question_options.forEach((option) => {
             trumbowyg.addBtnDef(option.id, {
                 text: option.display,

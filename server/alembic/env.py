@@ -3,8 +3,10 @@ from logging.config import fileConfig
 from alembic import context
 
 from core import db_connection
-from curriculum.models import BaseModel
-from responses import models  # TODO: find a better way
+from general.schema import BaseModel
+from curriculum import schema
+from responses import schema  # TODO: find a better way
+from organization import schema
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

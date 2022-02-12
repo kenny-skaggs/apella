@@ -12,7 +12,9 @@ export default new Vuex.Store({
     state: {
         isLoading: false,
         authToken: undefined,
-        user: undefined
+        user: undefined,
+        selectedClassId: undefined,
+        uniqueId: 0
     },
     mutations: {
         setIsLoading (state, loading) {
@@ -25,11 +27,17 @@ export default new Vuex.Store({
         clearAuth (state) {
             state.authToken = undefined;
             state.user = undefined;
+        },
+        setSelectedClass (state, class_id) {
+            state.selectedClassId = class_id
         }
     },
     getters: {
         userHasRole: (state) => (role) => {
             return state.user.roles.find((user_role) => user_role === role) !== undefined;
+        },
+        nextUniqueId: (state) => () => {
+            return `apella-element-${state.uniqueId++}`;
         }
     },
     actions: {

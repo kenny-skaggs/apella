@@ -1,11 +1,10 @@
 
-from curriculum import models as curriculum_models
-from storage import repository as curriculum_repository
-from responses import repository as responses_repository, view_models
+from curriculum import schema as curriculum_models, repository as curriculum_repository
+from responses import repository as responses_repository, model
 
 
 def answer_provided(user_id: int, question_id: int, answer):
-    answer_model = view_models.Answer(
+    answer_model = model.Answer(
         user_id=user_id,
         question_id=question_id
     )

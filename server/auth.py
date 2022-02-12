@@ -1,8 +1,9 @@
 from typing import List, Optional
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 import flask_praetorian
 from flask_restful import Api, Resource
+from general import repository, model
 
 guard = flask_praetorian.Praetorian()
 
@@ -11,9 +12,6 @@ requires_login = flask_praetorian.auth_required
 requires_roles = flask_praetorian.roles_required
 
 get_current_user = flask_praetorian.current_user
-
-
-users = []
 
 
 class User:
@@ -30,29 +28,28 @@ class User:
     @classmethod
     def lookup(cls, username) -> Optional['User']:
         """One or none that looks up a user based on a 'username'"""
-        for user in users:
-            if user.username == username:
-                return user
+        user: model.User = repository.UserRepository.get_with_username(username)
 
-        return None
+        possible_roles = ['author', 'student', 'teacher']
+        return User(
+            identity=user.id,
+            username=user.username,
+            hashed_password=user.password,
+            roles=[role for role in possible_roles if role in user.username]
+        )
 
     @classmethod
     def identify(cls, id_) -> Optional['User']:
         """One or none that looks up a user based on their id number"""
-        for user in users:
-            if user.identity == id_:
-                return user
+        user: model.User = repository.UserRepository.get_with_id(id_)
 
-        return None
-
-
-def init_users():
-    global users
-    users = [
-        User(identity=1, username='student', hashed_password=guard.hash_password('student'), roles=['student']),
-        User(identity=2, username='teacher', hashed_password=guard.hash_password('teacher'), roles=['teacher']),
-        User(identity=3, username='author', hashed_password=guard.hash_password('author'), roles=['author'])
-    ]
+        possible_roles = ['author', 'student', 'teacher']
+        return User(
+            identity=user.id,
+            username=user.username,
+            hashed_password=user.password,
+            roles=[role for role in possible_roles if role in user.username]
+        )
 
 
 class Login(Resource):

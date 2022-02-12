@@ -5,10 +5,18 @@ import UnitList from "../views/UnitList";
 import LessonList from "../views/LessonList";
 import Lesson from "../views/Lesson/LessonController";
 import Login from "../views/Login";
+import ClassManagement from "../views/ClassManagement";
+import Accounts from "../views/Accounts";
 
 Vue.use(VueRouter);
 
 const routes = [
+  {
+    name: 'login',
+    path: '/login',
+    component: Login,
+    props: true
+  },
   {
     name: 'dashboard',
     path: '/',
@@ -33,10 +41,14 @@ const routes = [
     props: true
   },
   {
-    name: 'login',
-    path: '/login',
-    component: Login,
-    props: true
+    name: 'class_management',
+    path: '/classes',
+    component: ClassManagement
+  },
+  {
+    name: 'account_management',
+    path: '/accounts',
+    component: Accounts
   }
 ];
 
