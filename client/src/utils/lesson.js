@@ -66,23 +66,22 @@ class ChoiceResponseDataView {
         const thisTracker = this;
 
         d3.selectAll(`.apella-responses[questionId="${this.questionId}"]`)
-            .selectAll('div')
+            .selectAll('div.student-response')
             .data(Object.values(studentMap))
             .join('div')
+            .attr('class', 'student-response choice')
             .html(function(student) {
                 const response = thisTracker.responseMap[student.id];
-                if (response === undefined) {
-                    return `<div class="student-response choice"><div class="name">${student.username}</div></div>`;
+                if (response === undefined || response.selected_option_ids.length === 0) {
+                    return `<div class="name">${student.username}</div>`;
                 } else {
                     let response_selections = ''
                     console.log(response.selected_option_ids)
                     for (const optionId of response.selected_option_ids) {
                         response_selections += thisTracker.optionIndicatorMap[optionId];
                     }
-                    return `<div class="student-response choice">
-                                <div class="name">${student.username}</div>
-                                <div class="selection"><span>${response_selections}</span></div>
-                            </div>`;
+                    return `<div class="name">${student.username}</div>
+                            <div class="selection"><span>${response_selections}</span></div>`;
                 }
             })
     }
@@ -94,6 +93,7 @@ class ChoiceResponseDataView {
         this.responseMap[response.user_id] = response;
         this.#addResponseToSummary(response);
         this.renderSummary();
+        this.renderDetailedDisplay();
     }
 
     #renderChoiceOptionSummary(optionId, answered_count) {

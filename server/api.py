@@ -19,6 +19,10 @@ app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
 auth.guard.init_app(app, auth.User)
 
+app.jinja_env.globals.update(
+    chr=chr
+)
+
 
 app.register_blueprint(auth.blueprint)
 app.register_blueprint(curriculum_api.blueprint, url_prefix='/curriculum')

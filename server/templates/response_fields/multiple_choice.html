@@ -2,8 +2,9 @@
     {% for option in options %}
         <div option-id="{{ option.id }}" class="question-choice {{ 'selected' if answer and (option.id in answer.selected_option_ids) else '' }}">
             {% if is_teacher %}
-                <div>{{ option.html|safe }}</div>
+                {{ option.html|safe }}
                 <div class="chart-container">
+                    <label>{{ chr(loop.index + 64) }}</label>
                     <svg>
                         <g class="response-chart">
                             <rect height="100%" fill="green" />

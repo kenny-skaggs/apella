@@ -50,6 +50,9 @@ export default {
   .chart-container
     position: relative
 
+    label
+      padding: 0.5em
+
     svg
       margin-top: 0.5em
       position: relative
