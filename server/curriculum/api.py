@@ -7,6 +7,16 @@ from curriculum import service, model, repository
 from curriculum.html_processing import LessonRenderer, RenderTarget
 
 
+class OrderUpdateApi(Resource):
+    def __init__(self, repository_method):
+        self.updated_method = repository_method
+
+    def post(self, container_id):
+        json = request.json
+        self.updated_method(container_id, json['orderedIds'])
+        return 'done', 200
+
+
 class Courses(Resource):
     @classmethod
     @auth.requires_login
@@ -46,6 +56,14 @@ class Units(Resource):
         return unit_id, 200
 
 
+class LessonOrder(Resource):
+    @classmethod
+    def post(cls, unit_id):
+        json = request.json
+        repository.UnitRepository.set_lesson_order(unit_id, json['lessonIds'])
+        return 'done', 200
+
+
 class Lessons(Resource):
     @classmethod
     @auth.requires_login
@@ -78,6 +96,14 @@ class Lessons(Resource):
         return unit_id, 200
 
 
+class PageOrder(Resource):
+    @classmethod
+    def post(cls, lesson_id):
+        json = request.json
+        repository.LessonRepository.set_page_order(lesson_id, json['pageIds'])
+        return 'done', 200
+
+
 class Pages(Resource):
     @classmethod
     @auth.requires_roles('author')
@@ -100,6 +126,11 @@ blueprint = Blueprint('curriculum', __name__)
 
 api = Api(blueprint)
 api.add_resource(Courses, '/courses', '/course/<int:course_id>')
+
 api.add_resource(Units, '/units', '/unit/<int:unit_id>')
+api.add_resource(LessonOrder, '/unit/order/<int:unit_id>')
+
 api.add_resource(Lessons, '/lessons', '/lesson/<int:lesson_id>')
+api.add_resource(PageOrder, '/lesson/order/<int:lesson_id>')
+
 api.add_resource(Pages, '/pages')

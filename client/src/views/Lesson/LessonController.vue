@@ -3,7 +3,7 @@
     <div class="column is-2">
       <b-button @click='addNewPage' v-if='userIsAuthor'>Add Page</b-button>
       <PageNavigation :pages='pages' @pageClicked='pageSelected' :selected-page-id='selectedPageId'
-          @deletePage='deletePage' :editable='userIsAuthor' />
+          @deletePage='deletePage' :editable='userIsAuthor' :lesson-id='lessonId' />
     </div>
     <div class="column" v-if='selectedPage !== undefined'>
       <LessonAuthor v-if='userIsAuthor' :selected-page='selectedPage' v-model='selectedPage.html' />
@@ -68,3 +68,19 @@ export default {
   mixins: [AuthCheckMixin]
 }
 </script>
+
+<style lang="sass">
+@import "~bulmaswatch/darkly/variables"
+
+.apella-question.choice
+  display: flex
+  border-radius: 5px
+  margin: 1em
+  width: fit-content
+
+  .question-choice
+    margin: 0.5em
+    padding: 1em
+    border-radius: 0.5em
+
+</style>

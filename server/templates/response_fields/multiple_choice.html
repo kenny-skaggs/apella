@@ -1,3 +1,18 @@
-<div>
-    multiple choice
+<div class="apella-question choice" questionId="{{ question_id }}">
+    {% for option in options %}
+        <div option-id="{{ option.id }}" class="question-choice {{ 'selected' if answer and (option.id in answer.selected_option_ids) else '' }}">
+            {% if is_teacher %}
+                <div>{{ option.html|safe }}</div>
+                <div class="chart-container">
+                    <svg>
+                        <g class="response-chart">
+                            <rect height="100%" fill="green" />
+                        </g>
+                    </svg>
+                </div>
+            {% else %}
+                {{ option.html|safe }}
+            {% endif %}
+        </div>
+    {% endfor %}
 </div>

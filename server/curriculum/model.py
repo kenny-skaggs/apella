@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Optional
 
 from core import Serializable
-from curriculum import schema
 
 
 @dataclass
@@ -36,10 +36,17 @@ class Page(Serializable):
     html: str = ''
 
 
+class QuestionType(Enum):
+    INLINE_TEXT = 1
+    INLINE_DROPDOWN = 2
+    PARAGRAPH = 3
+    CHOICE = 4
+
+
 @dataclass
 class Question(Serializable):
     id: int
-    type: schema.QuestionType
+    type: QuestionType
     options: List['Option'] = None
     page_id: int = None
 

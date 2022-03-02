@@ -5,7 +5,7 @@ import json
 from bs4 import BeautifulSoup, Tag
 from flask import render_template
 
-from curriculum import schema, model, repository
+from curriculum import model, repository
 from responses import repository as responses_repository
 
 
@@ -72,17 +72,19 @@ class LessonRenderer(_HtmlProcessor):
                 user_id=user_id,
                 lesson_id=lesson_id
             )
-            # TODO: use question ids to populate answers when loading
 
         return super(LessonRenderer, self).process_html(html)
 
     def _process_choice_node(self, node: Tag):
         question_id = self._get_question_id(node)
         answer = self.question_answer_map.get(int(question_id))
+        options = json.loads(node['options'])
         display_html = render_template(
             'response_fields/multiple_choice.html',
             question_id=question_id,
-            answer=answer
+            answer=answer,
+            options=options,
+            is_teacher=self.render_target == RenderTarget.TEACHING
         )
         display_html = BeautifulSoup(display_html, 'html.parser')
         node.replace_with(next(iter(display_html)))
@@ -112,7 +114,6 @@ class LessonRenderer(_HtmlProcessor):
     def _process_inline_dropdown_node(self, node: Tag):
         question_id = self._get_question_id(node)
         answer = self.question_answer_map.get(int(question_id))
-        print(answer)
         option_list = json.loads(node['options'])
         display_html = render_template(
             'response_fields/inline_select.html',
@@ -138,7 +139,7 @@ class QuestionParser(_HtmlProcessor):
         option_list = json.loads(node['options'])
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=schema.QuestionType.CHOICE,
+            _type=model.QuestionType.CHOICE,
         )
         question.options = [
             model.Option(id=option['id'], text=option['html'])
@@ -158,7 +159,7 @@ class QuestionParser(_HtmlProcessor):
     def _process_paragraph_node(self, node):
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=schema.QuestionType.PARAGRAPH,
+            _type=model.QuestionType.PARAGRAPH,
         )
 
         self._upsert_and_finalize(question=question, node=node)
@@ -166,7 +167,7 @@ class QuestionParser(_HtmlProcessor):
     def _process_inline_text_node(self, node):
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=schema.QuestionType.INLINE_TEXT,
+            _type=model.QuestionType.INLINE_TEXT,
         )
 
         self._upsert_and_finalize(question=question, node=node)
@@ -175,7 +176,7 @@ class QuestionParser(_HtmlProcessor):
         option_list = json.loads(node['options'])
         question = self._build_question(
             _id=self._get_question_id(node),
-            _type=schema.QuestionType.INLINE_DROPDOWN,
+            _type=model.QuestionType.INLINE_DROPDOWN,
         )
         question.options = [
             model.Option(id=None, text=option.get('text'))
@@ -199,7 +200,7 @@ class QuestionParser(_HtmlProcessor):
 
         return question
 
-    def _build_question(self, _id: int, _type: schema.QuestionType):
+    def _build_question(self, _id: int, _type: model.QuestionType):
         return model.Question(
             id=_id,
             type=_type,

@@ -15,17 +15,7 @@ class ClassRepository:
             schema.TeacherClass.user_id == user_id
         ).all()
         return [
-            model.Class(
-                id=db_class.id,
-                name=db_class.name,
-                students=[
-                    general_view_models.User(
-                        id=student_ref.user_id,
-                        username=student_ref.user.username
-                    )
-                    for student_ref in db_class.student_user_refs
-                ]
-            )
+            db_class.to_model(with_students=True)
             for db_class in db_classes
         ]
 
@@ -46,10 +36,7 @@ class ClassRepository:
         db_class.name = apella_class.name
 
         session.flush()
-        return model.Class(
-            id=db_class.id,
-            name=db_class.name
-        )
+        return db_class.to_model()
 
 
 class TeacherClassRepository:

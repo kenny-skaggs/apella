@@ -13,7 +13,7 @@ import router from './router'
 import store from './store'
 
 import ioClient from 'socket.io-client';
-import VueSocketIO from "vue-socket.io";
+import VueSocketIO from "vue-socket.io-extended";
 
 Vue.use(Buefy)
 
@@ -23,19 +23,15 @@ Vue.use(VueAxios, axios)
 
 Vue.config.productionTip = false
 
-
-const connectionOptions = {
-  connection: ioClient('http://localhost:5000', {
-    cors: {
-      origin: '*'
-    },
-    extraHeaders: {
-      Authorization: 'Bearer' + store.state.authToken
-    }
-  }),
-  debug: true
-}
-Vue.use(new VueSocketIO(connectionOptions));
+Vue.use(VueSocketIO, ioClient('http://localhost:5000', {
+  cors: {
+    origin: '*'
+  },
+  extraHeaders: {
+    Authorization: 'Bearer' + store.state.authToken
+  },
+  autoConnect: false
+}));
 
 new Vue({
   router,

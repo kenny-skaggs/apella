@@ -10,25 +10,13 @@ class CourseRepository:
     @needs_session
     def get_all(cls, session) -> List[model.Course]:
         db_courses = session.query(schema.Course).all()
-        return [
-            model.Course(
-                id=course.id,
-                name=course.name
-            )
-            for course in db_courses]
+        return [course.to_model() for course in db_courses]
 
     @classmethod
     @needs_session
     def get_by_id(cls, _id, session) -> model.Course:
         course = session.query(schema.Course).get(_id)
-        return model.Course(
-            id=course.id,
-            name=course.name,
-            units=[
-                model.Unit(id=unit.id, name=unit.name)
-                for unit in course.units
-            ]
-        )
+        return course.to_model(with_units=True)
 
     @classmethod
     @needs_session
@@ -49,14 +37,7 @@ class UnitRepository:
     @needs_session
     def get_by_id(cls, _id, session):
         unit = session.query(schema.Unit).get(_id)
-        return model.Unit(
-            id=unit.id,
-            name=unit.name,
-            lessons=[
-                model.Lesson(id=lesson.id, name=lesson.name)
-                for lesson in unit.lessons
-            ]
-        )
+        return unit.to_model(with_lessons=True)
 
     @classmethod
     @needs_session
@@ -71,20 +52,24 @@ class UnitRepository:
         session.flush()
         return db_unit.id
 
+    @classmethod
+    @needs_session
+    def set_lesson_order(cls, unit_id, ordered_lesson_ids, session):
+        unit = session.query(schema.Unit).get(unit_id)
+
+        pages = session.query(schema.Lesson).filter(schema.Lesson.id.in_(ordered_lesson_ids))
+        page_id_map = {page.id: page for page in pages}
+
+        unit.lessons = [page_id_map[id_] for id_ in ordered_lesson_ids]
+        unit.lessons.reorder()
+
 
 class LessonRepository:
     @classmethod
     @needs_session
     def get_by_id(cls, _id, session):
         lesson = session.query(schema.Lesson).get(_id)
-        return model.Lesson(
-            id=lesson.id,
-            name=lesson.name,
-            pages=[
-                model.Page(id=page.id, name=page.name, html=page.html)
-                for page in lesson.pages
-            ]
-        )
+        return lesson.to_model(with_pages=True)
 
     @classmethod
     @needs_session
@@ -98,6 +83,17 @@ class LessonRepository:
 
         session.flush()
         return db_lesson.id
+
+    @classmethod
+    @needs_session
+    def set_page_order(cls, lesson_id, ordered_page_ids, session):
+        lesson = session.query(schema.Lesson).get(lesson_id)
+
+        pages = session.query(schema.Page).filter(schema.Page.id.in_(ordered_page_ids))
+        page_id_map = {page.id: page for page in pages}
+
+        lesson.pages = [page_id_map[id_] for id_ in ordered_page_ids]
+        lesson.pages.reorder()
 
 
 class PageRepository:
@@ -113,7 +109,7 @@ class PageRepository:
         db_page.html = page.html
 
         session.flush()
-        return model.Page(id=db_page.id, name=db_page.name, html=db_page.html)
+        return db_page.to_model()
 
 
 class QuestionRepository:
@@ -121,14 +117,7 @@ class QuestionRepository:
     @needs_session
     def get(cls, question_id: int, session):
         db_question = session.query(schema.Question).get(question_id)
-        return model.Question(
-            id=db_question.id,
-            options=[
-                model.Option(id=option.id, text=option.text)
-                for option in (db_question.options or [])
-            ],
-            type=db_question.type
-        )
+        return db_question.to_model()
 
     @classmethod
     @needs_session
@@ -143,11 +132,4 @@ class QuestionRepository:
             db_question.options.append(schema.Option(text=option_data.text))
 
         session.flush()
-        return model.Question(
-            id=db_question.id,
-            options=[
-                model.Option(id=option.id, text=option.text)
-                for option in (db_question.options or [])
-            ],
-            type=question.type
-        )
+        return db_question.to_model()

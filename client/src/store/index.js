@@ -34,7 +34,12 @@ export default new Vuex.Store({
     },
     getters: {
         userHasRole: (state) => (role) => {
-            return state.user.roles.find((user_role) => user_role === role) !== undefined;
+            const user = state.user;
+            if (user === undefined) {
+                return false;
+            } else {
+                return user.roles.find((user_role) => user_role === role) !== undefined;
+            }
         },
         nextUniqueId: (state) => () => {
             return `apella-element-${state.uniqueId++}`;

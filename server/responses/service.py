@@ -1,5 +1,5 @@
 
-from curriculum import schema as curriculum_models, repository as curriculum_repository
+from curriculum import model as curriculum_models, repository as curriculum_repository
 from responses import repository as responses_repository, model
 
 
@@ -14,3 +14,5 @@ def answer_provided(user_id: int, question_id: int, answer):
     else:
         answer_model.selected_option_ids = answer
     responses_repository.AnswerRepository.upsert(answer_model)
+
+    return answer_model

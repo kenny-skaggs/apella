@@ -1,24 +1,36 @@
 <template>
-  <div class="pageNavigator">
+  <draggable :list='pages' class="pageNavigator" handle=".move-control" @change='pageOrderChanged' :animation='100'>
     <div class="pageItem" :class='{selected: page.id === selectedPageId}'
          v-for='page in pages' :key='page.id' @click='pageClicked(page)'>
-      <span>{{ page.name }}</span>
-      <b-tag v-if='editable' rounded type="is-danger" @click.stop.prevent='$emit("deletePage", page.id)'>
-        &cross;
-      </b-tag>
+      <div class="editing-control move-control">
+        <b-icon pack="fas" icon="grip-lines"></b-icon>
+      </div>
+      <span class="name">{{ page.name }}</span>
+      <div class="editing-control">
+        <b-tag v-if='editable' rounded type="is-danger" @click.stop.prevent='$emit("deletePage", page.id)'>
+          &cross;
+        </b-tag>
+      </div>
     </div>
-  </div>
+  </draggable>
 </template>
 
 <script>
+import draggable from "vuedraggable";
+
 export default {
   name: 'LessonPageNavigation',
-  props: ['pages', 'selectedPageId', 'editable'],
+  props: ['pages', 'selectedPageId', 'editable', 'lessonId'],
   methods: {
     pageClicked(page) {
       this.$emit('pageClicked', page);
+    },
+    pageOrderChanged() {
+      const ordered_page_ids = this.pages.map((page) => page.id);
+      this.$http.post(`/curriculum/lesson/order/${this.lessonId}`, {pageIds: ordered_page_ids});
     }
-  }
+  },
+  components: {draggable}
 }
 </script>
 
@@ -30,8 +42,8 @@ export default {
 
 .pageItem
   display: flex
-  justify-content: center
   align-items: center
+  justify-content: space-between
 
   min-height: 4em
   border-bottom: 1px white solid
@@ -42,6 +54,15 @@ export default {
 
   &.selected
     background: $grey
+
+  .name
+    flex-grow: 1
+
+  .editing-control
+    padding: 0.5em
+
+    &.move-control
+      cursor: move
 
 
 </style>

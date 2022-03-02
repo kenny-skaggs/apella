@@ -1,8 +1,9 @@
 <template>
   <div class="curriculum-tile">
-    <b-button class="edit-button" icon-pack="fas" icon-left="edit"
-              v-if='editable' @click.stop='editClicked'>
-    </b-button>
+    <div class="edit-panel" v-if='editable'>
+      <b-button icon-pack="fas" icon-left="edit" @click.stop='editClicked' />
+      <b-icon pack="fas" icon="grip-lines" class="move-handle" />
+    </div>
     <span>
       <slot></slot>
     </span>
@@ -41,8 +42,12 @@ export default {
     cursor: pointer
     color: #333
 
-.edit-button
+.edit-panel
   position: absolute
   right: 1em
   top: 1em
+  
+  .move-handle
+    cursor: move
+
 </style>

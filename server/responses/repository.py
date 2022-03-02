@@ -24,13 +24,7 @@ class AnswerRepository:
         ).all()
 
         return {
-            answer.question_id: model.Answer(
-                id=answer.id,
-                user_id=answer.user_id,
-                question_id=answer.question_id,
-                text=answer.text,
-                selected_option_ids=[option_ref.option_id for option_ref in answer.option_refs]
-            )
+            answer.question_id: answer.to_model()
             for answer in answers
         }
 
@@ -48,13 +42,7 @@ class AnswerRepository:
 
         question_answer_map = defaultdict(lambda: list())
         for answer in answers:
-            question_answer_map[answer.question_id].append(model.Answer(
-                id=answer.id,
-                user_id=answer.user_id,
-                question_id=answer.question_id,
-                text=answer.text,
-                selected_option_ids=[option_ref.option_id for option_ref in answer.option_refs]
-            ))
+            question_answer_map[answer.question_id].append(answer.to_model())
 
         return question_answer_map
 
@@ -80,10 +68,4 @@ class AnswerRepository:
         ]
 
         session.flush()
-        return model.Answer(
-            id=db_answer.id,
-            user_id=answer.user_id,
-            question_id=answer.question_id,
-            text=answer.text,
-            selected_option_ids=answer.selected_option_ids
-        )
+        return db_answer.to_model()

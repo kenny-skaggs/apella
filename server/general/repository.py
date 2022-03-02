@@ -11,13 +11,7 @@ class UserRepository:
     @needs_session
     def get_all_users(cls, session: Session):
         db_users: Sequence[schema.User] = session.query(schema.User).all()
-        return [
-            model.User(
-                id=user.id,
-                username=user.username
-            )
-            for user in db_users
-        ]
+        return [user.to_model() for user in db_users]
 
     @classmethod
     @needs_session
@@ -26,11 +20,7 @@ class UserRepository:
             schema.User.username == username
         ).one_or_none()
         if db_user:
-            return model.User(
-                id=db_user.id,
-                username=db_user.username,
-                password=db_user.password
-            )
+            return db_user.to_model(with_password=True)
         else:
             return None
 
@@ -39,11 +29,7 @@ class UserRepository:
     def get_with_id(cls, id_: int, session: Session):
         db_user: schema.User = session.query(schema.User).get(id_)
         if db_user:
-            return model.User(
-                id=db_user.id,
-                username=db_user.username,
-                password=db_user.password
-            )
+            return db_user.to_model(with_password=True)
         else:
             return None
 
@@ -58,7 +44,4 @@ class UserRepository:
         db_user.username = user.username
 
         session.flush()
-        return model.User(
-            id=db_user.id,
-            username=db_user.username
-        )
+        return db_user.to_model()
