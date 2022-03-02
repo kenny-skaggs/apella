@@ -10,6 +10,12 @@ from organization import schema, model
 class ClassRepository:
     @classmethod
     @needs_session
+    def get_class(cls, class_id, session: Session):
+        db_class = session.query(schema.Class).filter(schema.Class.id == class_id).one_or_none()
+        return db_class.to_model(with_students=True)
+
+    @classmethod
+    @needs_session
     def get_classes_taught_by_user(cls, user_id, session: Session):
         db_classes: Sequence[schema.Class] = session.query(schema.Class).join(schema.TeacherClass).filter(
             schema.TeacherClass.user_id == user_id

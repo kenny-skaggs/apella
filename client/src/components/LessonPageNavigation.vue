@@ -2,7 +2,7 @@
   <draggable :list='pages' class="pageNavigator" handle=".move-control" @change='pageOrderChanged' :animation='100'>
     <div class="pageItem" :class='{selected: page.id === selectedPageId}'
          v-for='page in pages' :key='page.id' @click='pageClicked(page)'>
-      <div class="editing-control move-control">
+      <div class="editing-control move-control" v-if='userIsAuthor'>
         <b-icon pack="fas" icon="grip-lines"></b-icon>
       </div>
       <span class="name">{{ page.name }}</span>
@@ -17,6 +17,7 @@
 
 <script>
 import draggable from "vuedraggable";
+import AuthCheckMixin from "../mixins/AuthCheckMixin";
 
 export default {
   name: 'LessonPageNavigation',
@@ -30,7 +31,8 @@ export default {
       this.$http.post(`/curriculum/lesson/order/${this.lessonId}`, {pageIds: ordered_page_ids});
     }
   },
-  components: {draggable}
+  components: {draggable},
+  mixins: [AuthCheckMixin]
 }
 </script>
 
@@ -57,9 +59,10 @@ export default {
 
   .name
     flex-grow: 1
+    padding-left: 0.5em
 
   .editing-control
-    padding: 0.5em
+    margin: 0.5em
 
     &.move-control
       cursor: move

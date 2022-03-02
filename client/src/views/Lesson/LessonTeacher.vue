@@ -8,13 +8,13 @@ import lesson_utils from '@/utils/lesson.js';
 export default {
   name: 'LessonTeacher',
   props: ['lessonHtml', 'pageId'],
-  sockets: {
-    newResponse(data) {
-      lesson_utils.updateResponse(data.question_id, data);
-    }
-  },
   watch: {
     pageId() {
+      this.retrieveResponses();
+    }
+  },
+  methods: {
+    retrieveResponses() {
       this.$http.get(`/responses/${this.pageId}`).then((response) => {
         lesson_utils.initializeDisplays(response.data);
       });
@@ -22,6 +22,19 @@ export default {
   },
   mounted() {
     this.$socket.client.connect();
+
+    this.$http.get(`/organization/class/${this.$store.state.selectedClassId}`).then((response) => {
+      lesson_utils.initialize(response.data.students);
+
+      if (this.pageId !== undefined) {
+        this.retrieveResponses();
+      }
+    });
+  },
+  sockets: {
+    newResponse(data) {
+      lesson_utils.updateResponse(data.question_id, data);
+    }
   }
 }
 </script>
@@ -43,4 +56,36 @@ export default {
       width: 10em
       height: 1em
       border: 1px solid $grey
+
+  .apella-responses
+    border: 1px solid $grey
+    border-radius: 5px
+
+    margin: 1em
+    padding: 1em
+
+    display: grid
+    grid-template-columns: repeat(auto-fill, 12em)
+    //flex-wrap: wrap
+
+    .student-response
+      margin: 0.3em
+      border: 1px solid $grey
+
+      .name
+        margin: 0.5em
+
+      &.choice
+        display: flex
+        align-items: stretch
+
+        .name
+          flex-grow: 1
+
+        .selection
+          padding: 0.5em
+          background: $grey
+
+          display: flex
+          align-items: center
 </style>

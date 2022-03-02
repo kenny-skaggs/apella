@@ -44,13 +44,17 @@ export default {
   },
   data() {
     return {
-      selectedPageId: 1,
+      selectedPageId: undefined,
       pages: []
     }
   },
   created() {
     this.$http.get(`/curriculum/lesson/${this.lessonId}`).then((response) => {
       this.pages = response.data['pages'];
+
+      if (this.selectedPageId === undefined && this.pages.length > 0) {
+        this.selectedPageId = this.pages[0].id;
+      }
     });
   },
   computed: {

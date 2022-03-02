@@ -9,13 +9,17 @@ from organization import service, repository, model
 class Classes(Resource):
     @classmethod
     @auth.requires_login
-    def get(cls):
-        return [
-            apella_class.to_dict()
-            for apella_class in repository.ClassRepository.get_classes_taught_by_user(
-                user_id=auth.get_current_user().identity
-            )
-        ]
+    def get(cls, class_id=None):
+        if class_id is None:
+            return [
+                apella_class.to_dict()
+                for apella_class in repository.ClassRepository.get_classes_taught_by_user(
+                    user_id=auth.get_current_user().identity
+                )
+            ]
+        else:
+            apella_class = repository.ClassRepository.get_class(class_id)
+            return apella_class.to_dict()
 
     @classmethod
     @auth.requires_login
