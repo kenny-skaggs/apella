@@ -86,8 +86,7 @@ class LessonRenderer(_HtmlProcessor):
             options=options,
             is_teacher=self.render_target == RenderTarget.TEACHING
         )
-        display_html = BeautifulSoup(display_html, 'html.parser')
-        node.replace_with(next(iter(display_html)))
+        self._replace_node(node, display_html)
 
     def _process_paragraph_node(self, node: Tag):
         question_id = self._get_question_id(node)
@@ -95,10 +94,10 @@ class LessonRenderer(_HtmlProcessor):
         display_html = render_template(
             'response_fields/paragraph_text.html',
             question_id=question_id,
-            answer=answer
+            answer=answer,
+            is_teacher=self.render_target == RenderTarget.TEACHING
         )
-        display_html = BeautifulSoup(display_html, 'html.parser')
-        node.replace_with(next(iter(display_html)))
+        self._replace_node(node, display_html)
 
     def _process_inline_text_node(self, node: Tag):
         question_id = self._get_question_id(node)
@@ -106,10 +105,10 @@ class LessonRenderer(_HtmlProcessor):
         display_html = render_template(
             'response_fields/inline_text.html',
             question_id=question_id,
-            answer=answer
+            answer=answer,
+            is_teacher=self.render_target == RenderTarget.TEACHING
         )
-        display_html = BeautifulSoup(display_html, 'html.parser')
-        node.replace_with(next(iter(display_html)))
+        self._replace_node(node, display_html)
 
     def _process_inline_dropdown_node(self, node: Tag):
         question_id = self._get_question_id(node)
@@ -121,8 +120,11 @@ class LessonRenderer(_HtmlProcessor):
             question_id=question_id,
             answer=answer
         )
-        display_html = BeautifulSoup(display_html, 'html.parser')
-        node.replace_with(next(iter(display_html)))
+        self._replace_node(node, display_html)
+
+    @classmethod
+    def _replace_node(cls, node, html_str):
+        node.replace_with(BeautifulSoup(html_str, 'html.parser'))
 
 
 class QuestionParser(_HtmlProcessor):

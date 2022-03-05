@@ -2,6 +2,14 @@ import * as d3 from "d3";
 
 const classSize = 10;
 
+function buildResponseMap(responseList) {
+    const responseMap = {};
+    responseList.forEach((response) => {
+        responseMap[response.user_id] = response
+    });
+    return responseMap
+}
+
 class IdCounts {
     constructor() {
         this.counts = {}
@@ -20,24 +28,75 @@ class IdCounts {
     }
 }
 
-class ChoiceResponseDataView {
-    constructor(responseList, questionId, $questionElement) {
-        this.responseMap = this.#buildResponseMap(responseList);
-        this.#buildSummary()
+class ResponseDataView {
+    constructor(responseList, questionId) {
+        this.responseMap = buildResponseMap(responseList)
         this.questionId = questionId;
+    }
+}
+
+class ParagraphResponseDataView extends ResponseDataView{
+    updateResponse(response) {
+        this.responseMap[response.user_id] = response;
+        this.renderDetailedDisplay();
+    }
+
+    renderDetailedDisplay() {
+        const thisTracker = this;
+
+        d3.selectAll(`.apella-responses[questionId="${this.questionId}"]`)
+            .selectAll('div.student-response')
+            .data(Object.values(studentMap))
+            .join('div')
+            .attr('class', 'student-response paragraph')
+            .html(function(student) {
+                const response = thisTracker.responseMap[student.id];
+                if (response === undefined) {
+                    return `<div class="name">${student.username}</div>`;
+                } else {
+                    return `<div class="name">${student.username}</div>
+                            <div class="answer"><span>${response.text}</span></div>`;
+                }
+            });
+    }
+}
+
+class InlineTextResponseDataView extends ResponseDataView {
+    updateResponse(response) {
+        this.responseMap[response.user_id] = response;
+        this.renderDetailedDisplay();
+    }
+
+    renderDetailedDisplay() {
+        const thisTracker = this;
+
+        d3.selectAll(`.apella-responses[questionId="${this.questionId}"]`)
+            .selectAll('div.student-response')
+            .data(Object.values(studentMap))
+            .join('div')
+            .attr('class', 'student-response inline-text')
+            .html(function(student) {
+                const response = thisTracker.responseMap[student.id];
+                if (response === undefined) {
+                    return `<div class="name">${student.username}</div>`;
+                } else {
+                    return `<div class="name">${student.username}</div>
+                            <div class="answer"><span>${response.text}</span></div>`;
+                }
+            });
+    }
+}
+
+class ChoiceResponseDataView extends ResponseDataView {
+    constructor(responseList, questionId, $questionElement) {
+        super(responseList, questionId)
 
         this.optionIndicatorMap = {};
         $questionElement.find('.question-choice').each((i, node) => {
             this.optionIndicatorMap[$(node).attr('option-id')] = String.fromCharCode(i + 65);
         });
-    }
 
-    #buildResponseMap(responseList) {
-        const responseMap = {};
-        responseList.forEach((response) => {
-            responseMap[response.user_id] = response
-        });
-        return responseMap
+        this.#buildSummary();
     }
 
     #buildSummary() {
@@ -76,7 +135,6 @@ class ChoiceResponseDataView {
                     return `<div class="name">${student.username}</div>`;
                 } else {
                     let response_selections = ''
-                    console.log(response.selected_option_ids)
                     for (const optionId of response.selected_option_ids) {
                         response_selections += thisTracker.optionIndicatorMap[optionId];
                     }
@@ -117,12 +175,13 @@ const studentMap = {};
 function toggleDetailedResponseDisplay(event) {
     const $targetElement = $(event.currentTarget);
     const questionId = $targetElement.attr('questionId');
+    const questionType = $targetElement.attr('type')
     const responseTracker = questionResponseTrackers[questionId];
     let $expandedDisplay = $(`.apella-responses[questionId="${questionId}"]`)
 
     if ($expandedDisplay.length === 0) {
         $targetElement.after(
-            `<div class="apella-responses" questionId="${questionId}"></div>`
+            `<div class="apella-responses ${questionType}" questionId="${questionId}"></div>`
         )
         if (responseTracker !== undefined) {
             responseTracker.renderDetailedDisplay();
@@ -142,9 +201,17 @@ export default {
     initializeDisplays(response_map) {
         for (const [questionId, responseList] of Object.entries(response_map)) {
             const $questionElement = $(`.apella-question[questionId="${questionId}"]`);
-            if ($questionElement.hasClass('choice')) {
-                let tracker = new ChoiceResponseDataView(responseList, questionId, $questionElement);
+            const questionType = $questionElement.attr('type');
+            let tracker;
+            if (questionType === 'choice') {
+                tracker = new ChoiceResponseDataView(responseList, questionId, $questionElement);
                 tracker.renderSummary();
+            } else if (questionType === 'paragraph') {
+                tracker = new ParagraphResponseDataView(responseList, questionId);
+            } else if (questionType === 'inline-text') {
+                tracker = new InlineTextResponseDataView(responseList, questionId);
+            }
+            if (tracker !== undefined) {
                 questionResponseTrackers[questionId] = tracker;
             }
         }

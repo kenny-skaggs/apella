@@ -43,9 +43,12 @@ export default {
 @import "~bulmaswatch/darkly/variables"
 
 .teacher-view
-  .apella-question.choice:hover
-    background: $grey
-    cursor: pointer
+  .apella-question
+    background: $grey-dark
+
+    &:hover
+      background: $grey
+      cursor: pointer
 
   .chart-container
     position: relative
@@ -68,8 +71,9 @@ export default {
     padding: 1em
 
     display: grid
-    grid-template-columns: repeat(auto-fill, 12em)
-    //flex-wrap: wrap
+
+    &.choice, &.inline-text
+      grid-template-columns: repeat(auto-fill, 12em)
 
     .student-response
       margin: 0.3em
@@ -91,4 +95,16 @@ export default {
 
           display: flex
           align-items: center
+
+      &.paragraph
+        .answer
+          background: $grey
+          border-radius: 5px
+          margin: 0.5em
+          padding: 0.5em
+
+      &.inline-text
+        .answer
+          background: $grey
+          padding: 0.5em
 </style>

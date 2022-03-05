@@ -76,15 +76,17 @@ export default {
 <style lang="sass">
 @import "~bulmaswatch/darkly/variables"
 
-.apella-question.choice
-  display: flex
+.apella-question
   border-radius: 5px
   margin: 1em
-  width: fit-content
+  padding: 1em
 
-  .question-choice
-    margin: 0.5em
-    padding: 1em
-    border-radius: 0.5em
+  &.choice
+    display: flex
+    width: fit-content
+
+    .question-choice
+      padding: 1em
+      border-radius: 0.5em
 
 </style>
