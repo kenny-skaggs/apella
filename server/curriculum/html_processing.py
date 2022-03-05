@@ -114,11 +114,17 @@ class LessonRenderer(_HtmlProcessor):
         question_id = self._get_question_id(node)
         answer = self.question_answer_map.get(int(question_id))
         option_list = json.loads(node['options'])
+        print(option_list)
         display_html = render_template(
             'response_fields/inline_select.html',
             options=option_list,
             question_id=question_id,
-            answer=answer
+            answer=answer,
+            is_teacher=self.render_target == RenderTarget.TEACHING,
+            option_map=json.dumps({
+                option['id']: option['text']
+                for option in option_list
+            })
         )
         self._replace_node(node, display_html)
 

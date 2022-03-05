@@ -33,14 +33,14 @@ class ResponseDataView {
         this.responseMap = buildResponseMap(responseList)
         this.questionId = questionId;
     }
-}
 
-class ParagraphResponseDataView extends ResponseDataView{
     updateResponse(response) {
         this.responseMap[response.user_id] = response;
         this.renderDetailedDisplay();
     }
+}
 
+class ParagraphResponseDataView extends ResponseDataView{
     renderDetailedDisplay() {
         const thisTracker = this;
 
@@ -62,11 +62,6 @@ class ParagraphResponseDataView extends ResponseDataView{
 }
 
 class InlineTextResponseDataView extends ResponseDataView {
-    updateResponse(response) {
-        this.responseMap[response.user_id] = response;
-        this.renderDetailedDisplay();
-    }
-
     renderDetailedDisplay() {
         const thisTracker = this;
 
@@ -82,6 +77,41 @@ class InlineTextResponseDataView extends ResponseDataView {
                 } else {
                     return `<div class="name">${student.username}</div>
                             <div class="answer"><span>${response.text}</span></div>`;
+                }
+            });
+    }
+}
+
+class InlineSelectResponseDataView extends ResponseDataView {
+    constructor(responseList, questionId, optionIdMap) {
+        super(responseList, questionId);
+        this.optionIdMap = optionIdMap;
+    }
+
+    renderDetailedDisplay() {
+        const thisTracker = this;
+
+        const $responseDisplay = $(`.apella-responses[questionId="${this.questionId}"]`);
+        const $optionDisplay = $responseDisplay.find('.option-display');
+        if ($optionDisplay.length === 0) {
+            const selectableOptionsString = Object.values(this.optionIdMap).join(', ');
+            $responseDisplay.prepend(`<div class='option-display'>Options: ${selectableOptionsString}</div>`)
+        }
+
+        d3.selectAll(`.apella-responses[questionId="${this.questionId}"]`)
+            .selectAll('div.student-response')
+            .data(Object.values(studentMap))
+            .join('div')
+            .attr('class', 'student-response inline-select')
+            .html(function(student) {
+                const response = thisTracker.responseMap[student.id];
+                if (response === undefined || !response.selected_option_ids
+                        || response.selected_option_ids.length === 0) {
+                    return `<div class="name">${student.username}</div>`;
+                } else {
+                    let optionText = thisTracker.optionIdMap[response.selected_option_ids[0]];
+                    return `<div class="name">${student.username}</div>
+                            <div class="answer"><span>${optionText}</span></div>`;
                 }
             });
     }
@@ -148,10 +178,13 @@ class ChoiceResponseDataView extends ResponseDataView {
         if (this.responseMap[response.user_id] !== undefined) {
             this.#removeUserResponseFromSummary(response.user_id);
         }
+
+        super.updateResponse(response);
         this.responseMap[response.user_id] = response;
+        this.renderDetailedDisplay();
+
         this.#addResponseToSummary(response);
         this.renderSummary();
-        this.renderDetailedDisplay();
     }
 
     #renderChoiceOptionSummary(optionId, answered_count) {
@@ -180,10 +213,10 @@ function toggleDetailedResponseDisplay(event) {
     let $expandedDisplay = $(`.apella-responses[questionId="${questionId}"]`)
 
     if ($expandedDisplay.length === 0) {
-        $targetElement.after(
-            `<div class="apella-responses ${questionType}" questionId="${questionId}"></div>`
-        )
         if (responseTracker !== undefined) {
+            $targetElement.after(
+                `<div class="apella-responses ${questionType}" questionId="${questionId}"></div>`
+            )
             responseTracker.renderDetailedDisplay();
         }
     } else {
@@ -210,6 +243,8 @@ export default {
                 tracker = new ParagraphResponseDataView(responseList, questionId);
             } else if (questionType === 'inline-text') {
                 tracker = new InlineTextResponseDataView(responseList, questionId);
+            } else if (questionType === 'inline-select') {
+                tracker = new InlineSelectResponseDataView(responseList, questionId, JSON.parse($questionElement.attr('options')));
             }
             if (tracker !== undefined) {
                 questionResponseTrackers[questionId] = tracker;

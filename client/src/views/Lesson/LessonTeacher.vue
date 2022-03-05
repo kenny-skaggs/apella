@@ -72,8 +72,12 @@ export default {
 
     display: grid
 
-    &.choice, &.inline-text
+    &.choice, &.inline-text, &.inline-select
       grid-template-columns: repeat(auto-fill, 12em)
+
+    &.inline-select
+      .option-display
+        grid-column: 1 / -1
 
     .student-response
       margin: 0.3em
@@ -103,7 +107,7 @@ export default {
           margin: 0.5em
           padding: 0.5em
 
-      &.inline-text
+      &.inline-text, &.inline-select
         .answer
           background: $grey
           padding: 0.5em

@@ -3,5 +3,7 @@
         value="{{ answer.text if answer and answer.text else '' }}"
     />
 {% else %}
-    <span class="apella-question" questionId="{{ question_id }}" type="inline-text">Inline responses</span>
+    <span class="apella-question" questionId="{{ question_id }}" type="inline-text">
+        Inline text responses
+    </span>
 {% endif %}
