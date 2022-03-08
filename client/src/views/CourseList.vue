@@ -25,6 +25,7 @@
 import EditItemModal from "../components/curriculum/EditItemModal";
 import Tile from '../components/curriculum/Tile';
 import AuthCheckMixin from "../mixins/AuthCheckMixin";
+import toast from "../utils/toasts";
 
 export default {
   name: 'CourseList',

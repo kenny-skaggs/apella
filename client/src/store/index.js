@@ -14,7 +14,8 @@ export default new Vuex.Store({
         authToken: undefined,
         user: undefined,
         selectedClassId: undefined,
-        uniqueId: 0
+        uniqueId: 0,
+        toast: undefined
     },
     mutations: {
         setIsLoading (state, loading) {
@@ -30,6 +31,9 @@ export default new Vuex.Store({
         },
         setSelectedClass (state, class_id) {
             state.selectedClassId = class_id
+        },
+        showToast (state, toast) {
+            state.toast = toast
         }
     },
     getters: {

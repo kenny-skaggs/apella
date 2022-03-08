@@ -31,6 +31,7 @@
 <script>
 import AuthCheckMixin from "./mixins/AuthCheckMixin";
 import ClassSelector from "./components/ClassSelector";
+import toast from "./utils/toasts";
 
 export default {
   name: 'App',
@@ -45,11 +46,31 @@ export default {
     });
     this.$http.interceptors.response.use((event) => event,
         (event) => {
-          if (event.response.status === 401 && !event.request.responseURL.endsWith('/login')) {
-            this.$router.push({name: 'login', query: { redirect: this.$route.path }})
+          const responseStatus = event.response.status;
+          if (responseStatus === 401 && !event.request.responseURL.endsWith('/login')) {
+            this.$router.push({name: 'login', query: {redirect: this.$route.path}});
+          } else if (responseStatus === 403) {
+            this.$store.commit(
+                'showToast',
+                toast.Toast(
+                    "I'm sorry. You don't have permissions to do that.",
+                    toast.level.error
+                )
+            );
+            return Promise.reject(event);
           } else {
             return event;
           }
+        }
+    );
+
+    const thisComponent = this;
+    this.$store.watch(
+        function (state) {
+          return state.toast;
+        },
+        function (toast) {
+          thisComponent.showToast(toast);
         }
     )
   },
@@ -59,6 +80,13 @@ export default {
       this.$router.push({name: 'login'});
 
       // TODO: need to disconnect from socket server
+    },
+    showToast(toast) {
+      this.$buefy.toast.open({
+        message: toast.message,
+        type: 'is-danger',
+        position: 'is-bottom'
+      })
     }
   },
   computed: {

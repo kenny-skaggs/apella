@@ -27,7 +27,7 @@ class Courses(Resource):
             return repository.CourseRepository.get_by_id(course_id).to_dict()
 
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles('author')
     def post(cls):
         json = request.json
         course_data = model.Course(
