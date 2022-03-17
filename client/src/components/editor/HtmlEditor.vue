@@ -22,8 +22,6 @@
 </template>
 
 <script>
-import {debounce} from 'vue-debounce';
-
 import 'trumbowyg';
 import 'trumbowyg/dist/ui/trumbowyg.css'
 import icons from 'trumbowyg/dist/ui/icons.svg'

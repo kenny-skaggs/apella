@@ -1,104 +1,122 @@
 <template>
-  <div>
-    <b-field label="Name">
-      <b-input v-model='selectedPage.name'></b-input>
-    </b-field>
-    <HtmlEditor v-model='lessonHtml' :page-id='selectedPage.id' :allowQuestionInsert='true'
-                @questionClicked='questionClicked' />
-    <b-button @click='saveHtmlToServer'>
-      Save to Server
-    </b-button>
-    <b-button @click='modifyClicked'>Modify</b-button>
-    <b-modal v-model='showChoiceModal'>
-      <div>Edit Choices</div>
-      <div class="rich-option-editor" v-for='option in options' :key='option.id'>
-        <html-editor v-model='option.html' />
-        <b-button class="is-small" type="is-danger" @click="removeOption(option)">Delete</b-button>
-      </div>
-      <b-button @click='addChoiceClicked'>Add Choice</b-button>
-      <div class="buttons">
-        <b-button type="is-success" @click='submitChoices'>Save</b-button>
-        <b-button @click='closeChoiceModal'>Cancel</b-button>
-      </div>
-    </b-modal>
-  </div>
+    <div>
+        <em v-if='isSaveQueued' class="save-notification">Saving...</em>
+        <em v-else class="save-notification">Saved</em>
+
+        <b-field label="Name">
+            <b-input v-model='selectedPage.name'></b-input>
+        </b-field>
+        <HtmlEditor v-model='lessonHtml' :page-id='selectedPage.id' :allowQuestionInsert='true'
+                    @questionClicked='questionClicked'/>
+        <b-button @click='saveHtmlToServer'>
+            Save to Server
+        </b-button>
+        <b-button @click='modifyClicked'>Modify</b-button>
+        <b-modal v-model='showChoiceModal'>
+            <div>Edit Choices</div>
+            <div class="rich-option-editor" v-for='option in options' :key='option.id'>
+                <html-editor v-model='option.html'/>
+                <b-button class="is-small" type="is-danger" @click="removeOption(option)">Delete</b-button>
+            </div>
+            <b-button @click='addChoiceClicked'>Add Choice</b-button>
+            <div class="buttons">
+                <b-button type="is-success" @click='submitChoices'>Save</b-button>
+                <b-button @click='closeChoiceModal'>Cancel</b-button>
+            </div>
+        </b-modal>
+    </div>
 </template>
 
 <script>
 import HtmlEditor from "../../components/editor/HtmlEditor";
 
 export default {
-  props: ['selectedPage', 'value'],
-  data() {
-    return {
-      editingQuestion: undefined,
-      showChoiceModal: false,
-      options: [],
-      tempOptionId: 1
-    }
-  },
-  methods: {
-    questionClicked(questionElement) {
-      this.editingQuestion = questionElement;
-      const serializedOptions = $(this.editingQuestion).attr('options');
-      this.options = JSON.parse(serializedOptions);
-      this.showChoiceModal = true;
+    props: ['selectedPage', 'value'],
+    data() {
+        return {
+            editingQuestion: undefined,
+            showChoiceModal: false,
+            options: [],
+            tempOptionId: 1,
+            queuedSaveToServer: undefined
+        }
     },
-    addChoiceClicked() {
-      this.options.push({id: `temp-option-${this.tempOptionId++}`, html: ''})
-    },
-    removeOption(option) {
-      this.options = this.options.filter((o) => o.id !== option.id);
-    },
-    modifyClicked() {
-      this.showChoiceModal = true;
-    },
-    submitChoices() {
-      const $element = $(this.editingQuestion);
-      const trumbowyg_core = $element.closest('.trumbowyg-editor').data('trumbowyg');
-      $(this.editingQuestion).attr('options', JSON.stringify(this.options));
-      trumbowyg_core.$c.trigger('tbwchange');
-      this.closeChoiceModal();
-    },
-    closeChoiceModal() {
-      this.showChoiceModal = false;
-    },
-    saveHtmlToServer() {
-      this.$http.post('/curriculum/pages', this.selectedPage).then((response) => {
-        // TODO: there's got to be a way to get this encapsulated in the HtmlEditor (maybe a prop for the map?)
-        const resolution_map = response.data.id_resolution;
-        $('.wysiwyg_question[temp-id]').each((i, node) => {
-          const $node = $(node);
-          const tempId = $node.attr('temp-id');
-          const newId = resolution_map['questions'][tempId];
-          $node.attr('questionId', newId);
-          $node.removeAttr('temp-id');
-        });
-        $('.wysiwyg_question[options]').each((i, node) => {
-          const $node = $(node);
-          const options = JSON.parse($node.attr('options'));
-          options.forEach((option) => {
-            if (option.id.toString().startsWith('temp-option')) {
-              const tempId = option.id;
-              option.id = resolution_map['options'][tempId]
+    methods: {
+        questionClicked(questionElement) {
+            this.editingQuestion = questionElement;
+            const serializedOptions = $(this.editingQuestion).attr('options');
+            this.options = JSON.parse(serializedOptions);
+            this.showChoiceModal = true;
+        },
+        addChoiceClicked() {
+            this.options.push({id: `temp-option-${this.tempOptionId++}`, html: ''})
+        },
+        removeOption(option) {
+            this.options = this.options.filter((o) => o.id !== option.id);
+        },
+        modifyClicked() {
+            this.showChoiceModal = true;
+        },
+        submitChoices() {
+            const $element = $(this.editingQuestion);
+            const trumbowyg_core = $element.closest('.trumbowyg-editor').data('trumbowyg');
+            $(this.editingQuestion).attr('options', JSON.stringify(this.options));
+            trumbowyg_core.$c.trigger('tbwchange');
+            this.closeChoiceModal();
+        },
+        closeChoiceModal() {
+            this.showChoiceModal = false;
+        },
+        queueSave() {
+            if (this.queuedSaveToServer !== undefined) {
+                clearTimeout(this.queuedSaveToServer);
             }
-          });
-          $node.attr('options', JSON.stringify(options));
-        });
-      });
-    }
-  },
-  computed:{
-    lessonHtml: {
-      get() {
-        return this.value;
-      },
-      set(newValue) {
-        this.$emit('input', newValue);
-      }
-    }
-  },
-  components: {HtmlEditor}
+
+            this.queuedSaveToServer = setTimeout(() => {
+                this.queuedSaveToServer = undefined;
+                this.saveHtmlToServer();
+            }, 1500);
+        },
+        saveHtmlToServer() {
+            this.$http.post('/curriculum/pages', this.selectedPage).then((response) => {
+                // TODO: there's got to be a way to get this encapsulated in the HtmlEditor (maybe a prop for the map?)
+                const resolution_map = response.data.id_resolution;
+                $('.wysiwyg_question[temp-id]').each((i, node) => {
+                    const $node = $(node);
+                    const tempId = $node.attr('temp-id');
+                    const newId = resolution_map['questions'][tempId];
+                    $node.attr('questionId', newId);
+                    $node.removeAttr('temp-id');
+                });
+                $('.wysiwyg_question[options]').each((i, node) => {
+                    const $node = $(node);
+                    const options = JSON.parse($node.attr('options'));
+                    options.forEach((option) => {
+                        if (option.id.toString().startsWith('temp-option')) {
+                            const tempId = option.id;
+                            option.id = resolution_map['options'][tempId]
+                        }
+                    });
+                    $node.attr('options', JSON.stringify(options));
+                });
+            });
+        }
+    },
+    computed: {
+        lessonHtml: {
+            get() {
+                return this.value;
+            },
+            set(newValue) {
+                this.$emit('input', newValue);
+                this.queueSave();
+            }
+        },
+        isSaveQueued() {
+            return this.queuedSaveToServer !== undefined;
+        }
+    },
+    components: {HtmlEditor}
 }
 </script>
 
@@ -106,21 +124,26 @@ export default {
 @import "~bulmaswatch/darkly/_variables.scss"
 
 .wysiwyg_question
-  border: 1px solid $grey-dark
-  border-radius: 5px
-  padding: 5px
+    border: 1px solid $grey-dark
+    border-radius: 5px
+    padding: 5px
 
-  &:hover
-    cursor: pointer
-    background: $grey-dark
+    &:hover
+        cursor: pointer
+        background: $grey-dark
 
 .trumbowyg-modal
-  color: #333
+    color: #333
 
 .rich-option-editor
-  margin: 2em
+    margin: 2em
 
-  .trumbowyg-box, .trumbowyg .trumbowyg-editor
-    min-height: 7em
+    .trumbowyg-box, .trumbowyg .trumbowyg-editor
+        min-height: 7em
+
+.save-notification
+    color: $grey-light
+    position: absolute
+    right: 0
 
 </style>
