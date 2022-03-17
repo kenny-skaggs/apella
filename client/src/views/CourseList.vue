@@ -3,7 +3,8 @@
     <div class="tile-container">
       <Tile v-for='course in courses' :key='course.id'
             :editable='userIsAuthor' @edit='editCourse(course)'
-            @click.native='courseSelected(course)'>
+            @click.native='courseSelected(course)'
+      >
         {{ course.name }}
       </Tile>
       <Tile @click.native='newCourseClicked' v-if='userIsAuthor'>

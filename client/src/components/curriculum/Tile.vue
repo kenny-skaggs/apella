@@ -1,13 +1,23 @@
 <template>
-  <div class="curriculum-tile">
-    <div class="edit-panel" v-if='editable'>
-      <b-button icon-pack="fas" icon-left="edit" @click.stop='editClicked' />
-      <b-icon pack="fas" icon="grip-lines" class="move-handle" />
+    <div class="curriculum-tile">
+        <div class="edit-panel" v-if='editable'>
+            <div @click.stop=''>
+                <b-dropdown aria-role="list">
+                    <template #trigger>
+                        <b-icon pack="fas" icon="ellipsis-v" />
+                    </template>
+
+                    <b-dropdown-item aria-role="listitem" @click="editClicked">Edit</b-dropdown-item>
+                    <b-dropdown-item aria-role="listitem">Delete</b-dropdown-item>
+                </b-dropdown>
+            </div>
+
+            <b-icon v-if='orderable' pack="fas" icon="grip-lines" class="move-handle" />
+        </div>
+        <span>
+            <slot></slot>
+        </span>
     </div>
-    <span>
-      <slot></slot>
-    </span>
-  </div>
 </template>
 
 <script>
@@ -18,7 +28,7 @@ export default {
       this.$emit('edit');
     }
   },
-  props: ['editable']
+  props: ['editable', 'orderable']
 }
 </script>
 
@@ -43,11 +53,17 @@ export default {
     color: #333
 
 .edit-panel
-  position: absolute
-  right: 1em
-  top: 1em
-  
-  .move-handle
-    cursor: move
+    position: absolute
+    right: 1em
+    top: 1em
+    left: 1em
+
+    display: flex
+    flex-direction: row-reverse
+    justify-content: space-between
+    align-items: center
+
+    .move-handle
+        cursor: move
 
 </style>

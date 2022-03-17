@@ -19,5 +19,6 @@ def initialize_server(app: Flask) -> SocketIO:
             answer=response_data['answer']
         )
         emit('newResponse', answer.to_dict(), broadcast=True)
+        # TODO: have responses only go to subscribed teacher connections
 
     return server

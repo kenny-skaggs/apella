@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from flask_restful import Api, Resource
 
 import auth
+from core import Role
 from general import repository
 from general import model
 
@@ -14,6 +15,7 @@ class Users(Resource):
         return [user.to_dict() for user in repository.UserRepository.get_all_users()]
 
     @classmethod
+    @auth.requires_roles(Role.TEACHER)
     def post(cls, user_id=None):
         json = request.json
         user = model.User(

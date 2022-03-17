@@ -1,26 +1,31 @@
 <template>
-  <div>
-    Lessons
-    <draggable :list='lessons' class="tile-container" :animation='100'
-               handle=".move-handle" @change='reorderLessons' draggable=".lesson-tile">
-      <Tile v-for='lesson in lessons' :key='lesson.id' class="lesson-tile"
-            :editable='userIsAuthor' @edit='editItemClicked(lesson)'
-            @click.native='itemSelected(lesson)'>
-        {{ lesson.name }}
-      </Tile>
-      <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
-        <div style="text-align: center">
-          <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
-        </div>
-        Add Lesson
-      </Tile>
-    </draggable>
-    <EditItemModal :show-modal='showEditModal' @submit='submitModal' @close='closeModal'>
-      <b-field label="Name">
-        <b-input v-model='currentEditing.name'></b-input>
-      </b-field>
-    </EditItemModal>
-  </div>
+    <div>
+        <draggable :list='lessons' class="tile-container" :animation='100'
+            handle=".move-handle" @change='reorderLessons' draggable=".lesson-tile"
+        >
+            <Tile v-for='lesson in lessons'
+                  :key='lesson.id'
+                  class="lesson-tile"
+                  :editable='userIsAuthor'
+                  orderable='true'
+                  @edit='editItemClicked(lesson)'
+                  @click.native='itemSelected(lesson)'
+            >
+                {{ lesson.name }}
+            </Tile>
+            <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
+                <div style="text-align: center">
+                    <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
+                </div>
+                Add Lesson
+            </Tile>
+        </draggable>
+        <EditItemModal :show-modal='showEditModal' @submit='submitModal' @close='closeModal'>
+            <b-field label="Name">
+                <b-input v-model='currentEditing.name'></b-input>
+            </b-field>
+        </EditItemModal>
+    </div>
 </template>
 
 <script>

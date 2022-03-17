@@ -4,13 +4,16 @@ from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import relationship
 
 from curriculum import model
-from general.schema import BaseModel
+from general.schema import BaseModel, User
 
 
 class Course(BaseModel):
     __tablename__ = 'course'
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
+
+    author_id = sa.Column(sa.Integer, sa.ForeignKey(User.id))
+    author = relationship(User, backref='authored_courses')
 
     units = relationship('Unit', back_populates='course',
                          order_by='Unit.position', collection_class=ordering_list('position'))

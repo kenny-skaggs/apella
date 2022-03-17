@@ -1,8 +1,12 @@
+from datetime import datetime
+import os
 
-from flask import Blueprint, request
+from flask import Blueprint, redirect, request, url_for
 from flask_restful import Api, Resource
+from werkzeug.utils import secure_filename
 
 import auth
+from core import Role
 from curriculum import service, model, repository
 from curriculum.html_processing import LessonRenderer, RenderTarget
 
@@ -27,7 +31,7 @@ class Courses(Resource):
             return repository.CourseRepository.get_by_id(course_id).to_dict()
 
     @classmethod
-    @auth.requires_roles('author')
+    @auth.requires_roles(Role.AUTHOR)
     def post(cls):
         json = request.json
         course_data = model.Course(
@@ -44,7 +48,7 @@ class Units(Resource):
         return repository.UnitRepository.get_by_id(unit_id).to_dict()
 
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.AUTHOR)
     def post(cls):
         json = request.json
         unit_data = model.Unit(
@@ -58,6 +62,7 @@ class Units(Resource):
 
 class LessonOrder(Resource):
     @classmethod
+    @auth.requires_roles(Role.AUTHOR)
     def post(cls, unit_id):
         json = request.json
         repository.UnitRepository.set_lesson_order(unit_id, json['lessonIds'])
@@ -84,7 +89,7 @@ class Lessons(Resource):
         return lesson_view_model.to_dict()
 
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.AUTHOR)
     def post(cls):
         json = request.json
         lesson_data = model.Lesson(
@@ -98,6 +103,7 @@ class Lessons(Resource):
 
 class PageOrder(Resource):
     @classmethod
+    @auth.requires_roles(Role.AUTHOR)
     def post(cls, lesson_id):
         json = request.json
         repository.LessonRepository.set_page_order(lesson_id, json['pageIds'])
@@ -122,6 +128,43 @@ class Pages(Resource):
         }, 200
 
 
+class FileUpload(Resource):
+    @classmethod
+    def _is_allowed_file(cls, file_name):
+        return '.' in file_name and file_name.rsplit('.', 1)[1].lower() in [
+            'png', 'jpeg', 'jpg', 'gif'
+        ]
+
+    @classmethod
+    @auth.requires_roles('author')
+    def post(cls):
+        if 'fileToUpload' not in request.files:
+            print('not found')
+            return {'success': False}
+
+        file = request.files['fileToUpload']
+        if file.filename == '':
+            print('no name')
+            return {'success': False}
+
+        if file and cls._is_allowed_file(file.filename):
+            filename = f'{int(datetime.utcnow().timestamp())}.{secure_filename(file.filename)}'
+            save_path = os.path.join('static', os.environ['UPLOAD_FOLDER'], filename)
+            file.save(save_path)
+
+            # TODO: match the current platform image path so existing html works
+
+            return {
+                'success': True,
+                'file': url_for('static', filename=os.path.join(os.environ['UPLOAD_FOLDER'], filename), _external=True)
+            }
+
+        return {
+            'success': True,
+            'file': 'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8&w=1000&q=80'
+        }, 200
+
+
 blueprint = Blueprint('curriculum', __name__)
 
 api = Api(blueprint)
@@ -134,3 +177,5 @@ api.add_resource(Lessons, '/lessons', '/lesson/<int:lesson_id>')
 api.add_resource(PageOrder, '/lesson/order/<int:lesson_id>')
 
 api.add_resource(Pages, '/pages')
+
+api.add_resource(FileUpload, '/file-upload')

@@ -3,12 +3,13 @@ from flask import Blueprint, request
 from flask_restful import Api, Resource
 
 import auth
+from core import Role
 from organization import service, repository, model
 
 
 class Classes(Resource):
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.TEACHER)
     def get(cls, class_id=None):
         if class_id is None:
             return [
@@ -22,7 +23,7 @@ class Classes(Resource):
             return apella_class.to_dict()
 
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.TEACHER)
     def post(cls, class_id=None):
         json = request.json
         apella_class = model.Class(
@@ -38,7 +39,7 @@ class Classes(Resource):
 
 class StudentClass(Resource):
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.TEACHER)
     def post(cls, class_id, student_id):
         repository.StudentClassRepository.assign_student_to_class(
             apella_class=class_id,

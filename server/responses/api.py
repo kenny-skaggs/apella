@@ -1,14 +1,15 @@
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_restful import Api, Resource
 
 import auth
-from responses import model, repository
+from core import Role
+from responses import repository
 
 
 class Responses(Resource):
     @classmethod
-    @auth.requires_login
+    @auth.requires_roles(Role.TEACHER)
     def get(cls, page_id):
         responses = repository.AnswerRepository.answers_for_page(page_id)
         return {
