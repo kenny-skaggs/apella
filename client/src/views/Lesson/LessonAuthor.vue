@@ -24,11 +24,13 @@
                 <b-button @click='closeChoiceModal'>Cancel</b-button>
             </div>
         </b-modal>
+        <RubricModal :show-modal='showRubricModal' :rubricItems='rubricItems' @saveRubric='saveRubric' />
     </div>
 </template>
 
 <script>
 import HtmlEditor from "../../components/editor/HtmlEditor";
+import RubricModal from "../../components/editor/RubricModal";
 
 export default {
     props: ['selectedPage', 'value'],
@@ -36,17 +38,26 @@ export default {
         return {
             editingQuestion: undefined,
             showChoiceModal: false,
+            showRubricModal: false,
             options: [],
+            rubricItems: undefined,
             tempOptionId: 1,
             queuedSaveToServer: undefined
         }
     },
     methods: {
         questionClicked(questionElement) {
+            let $questionElement = $(questionElement);
             this.editingQuestion = questionElement;
-            const serializedOptions = $(this.editingQuestion).attr('options');
-            this.options = JSON.parse(serializedOptions);
-            this.showChoiceModal = true;
+
+            if ($questionElement.hasClass('question_choice')) {
+                const serializedOptions = $questionElement.attr('options');
+                this.options = JSON.parse(serializedOptions);
+                this.showChoiceModal = true;
+            } else if ($questionElement.hasClass('question_rubric')) {
+                this.rubricItems = JSON.parse($questionElement.attr('rubric-items'));
+                this.showRubricModal = true;
+            }
         },
         addChoiceClicked() {
             this.options.push({id: `temp-option-${this.tempOptionId++}`, html: ''})
@@ -66,6 +77,13 @@ export default {
         },
         closeChoiceModal() {
             this.showChoiceModal = false;
+        },
+        saveRubric() {
+            const $element = $(this.editingQuestion);
+            this.showRubricModal = false;
+            $(this.editingQuestion).attr('rubric-items', JSON.stringify(this.rubricItems));
+            const trumbowyg_core = $element.closest('.trumbowyg-editor').data('trumbowyg');
+            trumbowyg_core.$c.trigger('tbwchange');
         },
         queueSave() {
             if (this.queuedSaveToServer !== undefined) {
@@ -99,6 +117,16 @@ export default {
                     });
                     $node.attr('options', JSON.stringify(options));
                 });
+                Object.keys(resolution_map['rubric_items']).forEach((questionId) => {
+                    const itemIds = resolution_map['rubric_items'][questionId];
+                    const $question = $(`.wysiwyg_question[question_id="${questionId}"]`);
+                    const rubricJsonList = JSON.parse($question.attr('rubric-items'));
+                    rubricJsonList.forEach((item, index) => {
+                        item.id = itemIds[index];
+                    });
+
+                    $question.attr('rubric-items', JSON.stringify(rubricJsonList));
+                });
             });
         }
     },
@@ -116,7 +144,7 @@ export default {
             return this.queuedSaveToServer !== undefined;
         }
     },
-    components: {HtmlEditor}
+    components: {HtmlEditor, RubricModal}
 }
 </script>
 

@@ -122,6 +122,7 @@ class QuestionRepository:
     @classmethod
     @needs_session
     def upsert(cls, question: model.Question, session):
+        # todo: check if id is null before trying to load
         db_question = session.query(schema.Question).get(question.id)
         if not db_question:
             db_question = schema.Question(page_id=question.page_id, type=question.type)
@@ -131,5 +132,32 @@ class QuestionRepository:
         for option_data in (question.options or []):
             db_question.options.append(schema.Option(text=option_data.text))
 
+        if question.rubric_items is not None:
+            uploaded_rubric_ids = [item.id for item in question.rubric_items if item.id is not None]
+
+            to_remove = []
+            for index, db_item in enumerate(db_question.rubric_items):
+                if db_item.id not in uploaded_rubric_ids:
+                    to_remove.append(index)
+            for index_to_delete in sorted(to_remove, reverse=True):
+                del db_question.rubric_items[index_to_delete]
+            for item_data in question.rubric_items:
+                cls._add_or_update_rubric_item(item_data, db_question)
+
         session.flush()
         return db_question.to_model()
+
+    @classmethod
+    def _add_or_update_rubric_item(cls, item: model.RubricItem, db_question: schema.Question):
+        if item.id is None:
+            db_question.rubric_items.append(
+                schema.RubricItem(text=item.text, points=item.points)
+            )
+        else:
+            for db_item in db_question.rubric_items:
+                if db_item.id == item.id:
+                    db_item.text = item.text
+                    db_item.points = item.points
+                    return
+
+            raise Exception(f'unable to find item id {item.id} in question {db_question.id}')

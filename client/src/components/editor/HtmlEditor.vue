@@ -37,7 +37,6 @@ import 'trumbowyg/dist/plugins/mathml/trumbowyg.mathml.min'
 import 'trumbowyg/dist/plugins/table/ui/trumbowyg.table.min.css'
 import 'trumbowyg/dist/plugins/table/trumbowyg.table.min'
 import 'trumbowyg/dist/plugins/upload/trumbowyg.upload.min'
-import 'trumbowyg/dist/plugins/resizimg/trumbowyg.resizimg.min'
 import buildQuestionPlugin from '@/components/editor/trumbowyg.question.js'
 
 let v_editor_component_handle;

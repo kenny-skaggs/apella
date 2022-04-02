@@ -16,12 +16,17 @@ const buildPlugin = function ($) {
         {
             id: 'question_inline_text',
             display: 'Short Answer',
-            template: '<span>a small field to enter text will appear here</span>'
+            template: '<span>A small field to enter text will appear here</span>'
         },
         {
             id: 'question_inline_dropdown',
             display: 'Inline Dropdown',
-            template: '<span>a dropdown field to select an option will appear here</span>'
+            template: '<span>A dropdown field to select an option will appear here</span>'
+        },
+        {
+            id: 'question_rubric',
+            display: 'Project Rubric',
+            template: '<div>A project rubric will appear here.</div>'
         }
     ]
 

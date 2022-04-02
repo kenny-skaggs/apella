@@ -1,0 +1,31 @@
+<div class="apella-question rubric" questionId="{{ question_id }}" type="rubric" items="{{ items_json_str }}">
+    {% if not is_teacher %}
+        <table>
+            {% for item in rubric_items %}
+                <tr item-id="{{ item.id }}">
+                    <td>
+                        - / {{ item.points }}
+                    </td>
+                    <td>
+                        {{ item.text }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <hr>
+        <div class="submit-form field-body">
+            <div class="field has-addons">
+                <div class="control">
+                    <input type="text" class="input rubric-input" {% if answer %} value="{{ answer.text }}" {% endif %} />
+                </div>
+                <button type="button" class="submit-btn button is-success">
+                    <span>Submit</span>
+                </button>
+            </div>
+        </div>
+    {% else %}
+        <div>
+            Rubric to grade here
+        </div>
+    {% endif %}
+</div>

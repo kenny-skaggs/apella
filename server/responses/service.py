@@ -9,7 +9,11 @@ def answer_provided(user_id: int, question_id: int, answer):
         question_id=question_id
     )
     question = curriculum_repository.QuestionRepository.get(question_id)
-    if question.type in [curriculum_models.QuestionType.PARAGRAPH, curriculum_models.QuestionType.INLINE_TEXT]:
+    if question.type in [
+        curriculum_models.QuestionType.PARAGRAPH,
+        curriculum_models.QuestionType.INLINE_TEXT,
+        curriculum_models.QuestionType.RUBRIC
+    ]:
         answer_model.text = answer
     else:
         answer_model.selected_option_ids = answer

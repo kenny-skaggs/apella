@@ -106,11 +106,15 @@ class Question(BaseModel):
     page_id = sa.Column(sa.Integer, sa.ForeignKey(Page.id))
     page = relationship(Page, backref='questions')
 
+    rubric_items = relationship('RubricItem', back_populates='question',
+                                order_by='RubricItem.position', collection_class=ordering_list('position'))
+
     def to_model(self) -> model.Question:
         result = model.Question(
             id=self.id,
             type=self.type,
-            options=[option.to_model() for option in self.options]
+            options=[option.to_model() for option in self.options],
+            rubric_items=[item.to_model() for item in self.rubric_items]
         )
         return result
 
@@ -128,5 +132,25 @@ class Option(BaseModel):
         result = model.Option(
             id=self.id,
             text=self.text
+        )
+        return result
+
+
+class RubricItem(BaseModel):
+    """Grade-able item for a rubric"""
+    __tablename__ = 'rubric_item'
+    id = sa.Column(sa.Integer, primary_key=True)
+    text = sa.Column(sa.String(1000))
+    points = sa.Column(sa.Integer)
+    position = sa.Column(sa.Integer)
+
+    question_id = sa.Column(sa.Integer, sa.ForeignKey(Question.id))
+    question = relationship(Question, back_populates='rubric_items')
+
+    def to_model(self) -> model.RubricItem:
+        result = model.RubricItem(
+            id=self.id,
+            text=self.text,
+            points=self.points
         )
         return result

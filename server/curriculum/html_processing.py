@@ -23,7 +23,8 @@ class _HtmlProcessor(ABC):
             'question_choice': self._process_choice_node,
             'question_paragraph': self._process_paragraph_node,
             'question_inline_text': self._process_inline_text_node,
-            'question_inline_dropdown': self._process_inline_dropdown_node
+            'question_inline_dropdown': self._process_inline_dropdown_node,
+            'question_rubric': self._process_rubric_node
         }
 
         question_nodes = soup.find_all(class_='wysiwyg_question')
@@ -47,6 +48,10 @@ class _HtmlProcessor(ABC):
 
     @abstractmethod
     def _process_inline_dropdown_node(self, node):
+        ...
+
+    @abstractmethod
+    def _process_rubric_node(self, node):
         ...
 
     @classmethod
@@ -114,7 +119,6 @@ class LessonRenderer(_HtmlProcessor):
         question_id = self._get_question_id(node)
         answer = self.question_answer_map.get(int(question_id))
         option_list = json.loads(node['options'])
-        print(option_list)
         display_html = render_template(
             'response_fields/inline_select.html',
             options=option_list,
@@ -125,6 +129,22 @@ class LessonRenderer(_HtmlProcessor):
                 option['id']: option['text']
                 for option in option_list
             })
+        )
+        self._replace_node(node, display_html)
+
+    def _process_rubric_node(self, node):
+        question_id = self._get_question_id(node)
+        items_json_str = node['rubric-items']
+        items = json.loads(items_json_str)
+        answer = self.question_answer_map.get(int(question_id))
+
+        display_html = render_template(
+            'response_fields/rubric.html',
+            is_teacher=self.render_target == RenderTarget.TEACHING,
+            question_id=question_id,
+            rubric_items=items,
+            answer=answer,
+            items_json_str=items_json_str
         )
         self._replace_node(node, display_html)
 
@@ -140,7 +160,8 @@ class QuestionParser(_HtmlProcessor):
         self.page_id = page_id
         self.id_resolution_map = {
             'questions': {},
-            'options': {}
+            'options': {},
+            'rubric_items': {}
         }
 
     def _process_choice_node(self, node):
@@ -182,21 +203,57 @@ class QuestionParser(_HtmlProcessor):
 
     def _process_inline_dropdown_node(self, node):
         option_list = json.loads(node['options'])
-        question = self._build_question(
+        client_question = self._build_question(
             _id=self._get_question_id(node),
-            _type=model.QuestionType.INLINE_DROPDOWN,
+            _type=model.QuestionType.INLINE_DROPDOWN
         )
-        question.options = [
+        client_question.options = [
             model.Option(id=None, text=option.get('text'))
             for option in option_list
         ]
 
-        question = self._upsert_and_finalize(question=question, node=node)
+        question = self._upsert_and_finalize(question=client_question, node=node)
 
         node['options'] = json.dumps([
             {'text': option.text, 'id': option.id}
             for option in question.options
         ])
+
+    def _process_rubric_node(self, node):
+        rubric_items = json.loads(node['rubric-items'])
+        client_question = self._build_question(
+            _id=self._get_question_id(node),
+            _type=model.QuestionType.RUBRIC
+        )
+        client_question.rubric_items = [
+            self._get_rubric_item_from_json(item_json=item)
+            for item in rubric_items
+        ]
+
+        question = self._upsert_and_finalize(question=client_question, node=node)
+
+        node['rubric-items'] = json.dumps([
+            {'id': item.id, 'text': item.text, 'points': item.points}
+            for item in question.rubric_items
+        ])
+
+        if any(item.id is None for item in client_question.rubric_items):
+            self.id_resolution_map['rubric_items'][question.id] = [
+                item.id for item in question.rubric_items
+            ]
+
+        return node
+
+    @classmethod
+    def _get_rubric_item_from_json(cls, item_json):
+        item_id = item_json.get('id')
+        if item_id and isinstance(item_id, str) and item_id.startswith('temp'):
+            item_id = None
+        return model.RubricItem(
+            id=item_id,
+            text=item_json.get('text'),
+            points=item_json.get('points')
+        )
 
     def _upsert_and_finalize(self, question: model.Question, node: Tag):
         question = repository.QuestionRepository.upsert(question)

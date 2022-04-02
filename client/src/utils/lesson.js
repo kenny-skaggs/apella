@@ -202,6 +202,27 @@ class ChoiceResponseDataView extends ResponseDataView {
     }
 }
 
+class RubricResponseDataView extends ResponseDataView {
+    renderDetailedDisplay() {
+        const thisTracker = this;
+
+        d3.selectAll(`.apella-responses[questionId="${this.questionId}"]`)
+            .selectAll('div.student-response')
+            .data(Object.values(studentMap))
+            .join('div')
+            .attr('class', 'student-response paragraph')
+            .html(function(student) {
+                const response = thisTracker.responseMap[student.id];
+                if (response === undefined) {
+                    return `<div class="name">${student.username}</div>`;
+                } else {
+                    return `<div class="name">${student.username}</div>
+                            <div class="answer"><span>${response.text}</span></div>`;
+                }
+            });
+    }
+}
+
 const questionResponseTrackers = {};
 const studentMap = {};
 
@@ -212,24 +233,33 @@ function toggleDetailedResponseDisplay(event) {
     const responseTracker = questionResponseTrackers[questionId];
     let $expandedDisplay = $(`.apella-responses[questionId="${questionId}"]`)
 
-    if ($expandedDisplay.length === 0) {
+    if (questionType === 'rubric') {
+        let rubricItems = JSON.parse($targetElement.attr('items'));
+        vueComponent.rubricDetailsSelected(questionId, rubricItems);
+    } else if ($expandedDisplay.length === 0) {
         if (responseTracker !== undefined) {
             $targetElement.after(
                 `<div class="apella-responses ${questionType}" questionId="${questionId}"></div>`
             )
             responseTracker.renderDetailedDisplay();
+        } else {
+            console.error(`Error finding response tracker for question id "${questionId}"`)
+            // TODO: have this logged to the server
         }
     } else {
         $expandedDisplay.toggle();
     }
 }
 
+let vueComponent = undefined;
 export default {
-    initialize(studentList) {
+    initialize(studentList, component) {
         $('body').on('click', '.apella-question', toggleDetailedResponseDisplay);
         for (const student of studentList) {
             studentMap[student.id] = student;
         }
+
+        vueComponent = component;
     },
     initializeDisplays(response_map) {
         for (const [questionId, responseList] of Object.entries(response_map)) {
@@ -245,6 +275,8 @@ export default {
                 tracker = new InlineTextResponseDataView(responseList, questionId);
             } else if (questionType === 'inline-select') {
                 tracker = new InlineSelectResponseDataView(responseList, questionId, JSON.parse($questionElement.attr('options')));
+            } else if (questionType === 'rubric') {
+                tracker = new RubricResponseDataView(responseList, questionId);
             }
             if (tracker !== undefined) {
                 questionResponseTrackers[questionId] = tracker;

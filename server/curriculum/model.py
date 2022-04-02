@@ -41,6 +41,7 @@ class QuestionType(Enum):
     INLINE_DROPDOWN = 2
     PARAGRAPH = 3
     CHOICE = 4
+    RUBRIC = 5
 
 
 @dataclass
@@ -48,6 +49,7 @@ class Question(Serializable):
     id: int
     type: QuestionType
     options: List['Option'] = None
+    rubric_items: List['RubricItem'] = None
     page_id: int = None
 
 
@@ -55,3 +57,10 @@ class Question(Serializable):
 class Option(Serializable):
     id: Optional[int]
     text: str
+
+
+@dataclass
+class RubricItem(Serializable):
+    id: Optional[int]
+    text: str
+    points: int
