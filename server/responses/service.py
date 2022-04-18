@@ -20,3 +20,14 @@ def answer_provided(user_id: int, question_id: int, answer):
     responses_repository.AnswerRepository.upsert(answer_model)
 
     return answer_model
+
+
+def rubric_item_graded(answer_id, rubric_item_id, grade) -> model.RubricGrade:
+    rubric_grade = model.RubricGrade(
+        rubric_item_id=rubric_item_id,
+        grade=grade
+    )
+    return responses_repository.RubricGradeRepository.upsert(
+        rubric_grade=rubric_grade,
+        answer_id=answer_id
+    )

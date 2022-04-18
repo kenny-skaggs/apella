@@ -4,7 +4,7 @@
             {% for item in rubric_items %}
                 <tr item-id="{{ item.id }}">
                     <td>
-                        - / {{ item.points }}
+                        {{ rubric_grades.get(item.id) or '-' }} / {{ item.points }}
                     </td>
                     <td>
                         {{ item.text }}

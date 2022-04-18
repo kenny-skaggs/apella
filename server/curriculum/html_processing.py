@@ -137,12 +137,17 @@ class LessonRenderer(_HtmlProcessor):
         items_json_str = node['rubric-items']
         items = json.loads(items_json_str)
         answer = self.question_answer_map.get(int(question_id))
+        if answer:
+            rubric_grades = {rubric_grade.rubric_item_id: rubric_grade.grade for rubric_grade in answer.rubric_grades}
+        else:
+            rubric_grades = {}
 
         display_html = render_template(
             'response_fields/rubric.html',
             is_teacher=self.render_target == RenderTarget.TEACHING,
             question_id=question_id,
             rubric_items=items,
+            rubric_grades=rubric_grades,
             answer=answer,
             items_json_str=items_json_str
         )

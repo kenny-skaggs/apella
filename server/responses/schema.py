@@ -25,7 +25,8 @@ class Answer(BaseModel):
             user_id=self.user_id,
             question_id=self.question_id,
             text=self.text,
-            selected_option_ids=[option_ref.option_id for option_ref in self.option_refs]
+            selected_option_ids=[option_ref.option_id for option_ref in self.option_refs],
+            rubric_grades=[grade.to_model() for grade in self.grades]
         )
         return result
 
@@ -39,3 +40,22 @@ class AnswerOption(BaseModel):
 
     option_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_models.Option.id))
     question = relationship(curriculum_models.Option, backref='answer_refs')
+
+
+class RubricGrade(BaseModel):
+    __tablename__ = 'rubric_grades'
+    id = sa.Column(sa.Integer, primary_key=True)
+    grade = sa.Column(sa.Integer)
+
+    answer_id = sa.Column(sa.Integer, sa.ForeignKey(Answer.id))
+    answer = relationship(Answer, backref='grades')
+
+    rubric_item_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_models.RubricItem.id))
+    rubric_item = relationship(curriculum_models.RubricItem, backref='grades')
+
+    def to_model(self) -> model.RubricGrade:
+        return model.RubricGrade(
+            rubric_item_id=self.rubric_item_id,
+            grade=self.grade,
+            id=self.id
+        )

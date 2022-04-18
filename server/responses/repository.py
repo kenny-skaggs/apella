@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Sequence
+from typing import Optional, Sequence
 
 from sqlalchemy.orm import Session
 
@@ -69,3 +69,25 @@ class AnswerRepository:
 
         session.flush()
         return db_answer.to_model()
+
+
+class RubricGradeRepository:
+    @classmethod
+    @needs_session
+    def upsert(cls, rubric_grade: model.RubricGrade, answer_id: int, session: Session):
+        db_answer = session.query(schema.Answer).filter(schema.Answer.id == answer_id).one()
+
+        existing_rubric_grade: Optional[schema.RubricGrade] = None
+        for grade in db_answer.grades:
+            if grade.rubric_item_id == rubric_grade.rubric_item_id:
+                existing_rubric_grade = grade
+                break
+
+        if not existing_rubric_grade:
+            existing_rubric_grade = schema.RubricGrade(
+                rubric_item_id=rubric_grade.rubric_item_id
+            )
+            db_answer.grades.append(existing_rubric_grade)
+        existing_rubric_grade.grade = rubric_grade.grade
+
+        return existing_rubric_grade.to_model()

@@ -86,7 +86,7 @@ export default {
 }
 </script>
 
-<style lang="sass">
+<style lang="sass" scoped>
 @import "~bulmaswatch/darkly/variables"
 
 .student

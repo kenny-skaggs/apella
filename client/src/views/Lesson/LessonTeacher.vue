@@ -2,7 +2,11 @@
     <div>
         <b-button @click='showRubricModal'>Show rubric</b-button>
         <div v-html='lessonHtml' class="teacher-view"/>
-        <RubricModal v-model='showRubric' :rubric-items='currentRubricItems' />
+        <RubricModal v-model='showRubric'
+                     :rubric-items='currentRubricItems'
+                     :student-map='currentStudentMap'
+                     :response-map='currentResponseMap'
+        />
     </div>
 </template>
 
@@ -16,7 +20,9 @@ export default {
     data() {
         return {
             showRubric: false,
-            currentRubricItems: undefined
+            currentRubricItems: undefined,
+            currentResponseMap: undefined,
+            currentStudentMap: undefined
         }
     },
     watch: {
@@ -33,9 +39,11 @@ export default {
         showRubricModal() {
             this.showRubric = true;
         },
-        rubricDetailsSelected(questionId, rubricItems) {
+        rubricDetailsSelected(questionId, rubricItems, responseMap, studentMap) {
             this.currentRubricItems = rubricItems;
             this.showRubric = true;
+            this.currentResponseMap = responseMap;
+            this.currentStudentMap = studentMap;
         }
     },
     mounted() {

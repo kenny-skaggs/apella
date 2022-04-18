@@ -235,7 +235,7 @@ function toggleDetailedResponseDisplay(event) {
 
     if (questionType === 'rubric') {
         let rubricItems = JSON.parse($targetElement.attr('items'));
-        vueComponent.rubricDetailsSelected(questionId, rubricItems);
+        vueComponent.rubricDetailsSelected(questionId, rubricItems, responseTracker.responseMap, studentMap);
     } else if ($expandedDisplay.length === 0) {
         if (responseTracker !== undefined) {
             $targetElement.after(
