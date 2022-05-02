@@ -1,5 +1,5 @@
 <template>
-    <div @click.stop=''>
+    <div @click.stop='' style="width: fit-content">
         <b-dropdown aria-role="list">
             <template #trigger>
                 <b-button
