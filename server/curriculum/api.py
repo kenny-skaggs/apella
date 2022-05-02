@@ -96,7 +96,8 @@ class Lessons(Resource):
         lesson_data = model.Lesson(
             id=json.get('id'),
             name=json['name'],
-            unit_id=json['unit_id']
+            unit_id=json['unit_id'],
+            resources=model.Resource.list_from_json(json['resources'])
         )
         unit_id = repository.LessonRepository.upsert(lesson_data)
         return unit_id, 200

@@ -93,6 +93,18 @@ class LessonRepository:
 
         db_lesson.name = lesson.name
 
+        db_resources = [
+            schema.Resource(
+                name=resource.name,
+                link=resource.link
+            )
+            for resource in lesson.resources
+        ]
+        db_lesson.resource_refs = [
+            schema.LessonResource(resource=resource)
+            for resource in db_resources
+        ]
+
         session.flush()
         return db_lesson.id
 

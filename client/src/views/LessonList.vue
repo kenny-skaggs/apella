@@ -13,6 +13,7 @@
                   :item='lesson'
             >
                 {{ lesson.name }}
+                <DisplayResourceList v-if='lesson.resources.length > 0' :resources='lesson.resources' />
             </Tile>
             <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
                 <div style="text-align: center">
@@ -25,6 +26,9 @@
             <b-field label="Name">
                 <b-input v-model='currentEditing.name'></b-input>
             </b-field>
+            <hr>
+            <EditResourceList :resource-list='currentEditing.resources' />
+            <hr>
         </EditItemModal>
     </div>
 </template>
@@ -35,6 +39,8 @@ import draggable from "vuedraggable";
 import EditItemModal from "../components/curriculum/EditItemModal";
 import Tile from '../components/curriculum/Tile';
 import AuthCheckMixin from "../mixins/AuthCheckMixin";
+import EditResourceList from "../components/curriculum/EditResourceList";
+import DisplayResourceList from "../components/curriculum/DisplayResourceList";
 
 export default {
     name: 'LessonList',
@@ -78,7 +84,7 @@ export default {
         return {
             showEditModal: false,
             itemTemplate: {id: undefined, name: '', unit_id: this.unitId},
-            currentEditing: {id: undefined, name: ''},
+            currentEditing: {id: undefined, name: '', resources: []},
             lessons: []
         }
     },
@@ -92,7 +98,7 @@ export default {
         this.$store.commit('clearCurrentLesson');
     },
     components: {
-        EditItemModal, Tile, draggable
+        EditItemModal, Tile, draggable, EditResourceList, DisplayResourceList
     },
     mixins: [AuthCheckMixin]
 }
