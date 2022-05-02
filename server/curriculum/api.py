@@ -54,7 +54,8 @@ class Units(Resource):
         unit_data = model.Unit(
             id=json.get('id'),
             name=json['name'],
-            course_id=json['course_id']
+            course_id=json['course_id'],
+            resources=model.Resource.list_from_json(json['resources'])
         )
         unit_id = repository.UnitRepository.upsert(unit_data)
         return unit_id, 200

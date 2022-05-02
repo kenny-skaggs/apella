@@ -1,7 +1,7 @@
 <template>
     <div>
         <draggable :list='lessons' class="tile-container" :animation='100'
-            handle=".move-handle" @change='reorderLessons' draggable=".lesson-tile"
+                   handle=".move-handle" @change='reorderLessons' draggable=".lesson-tile"
         >
             <Tile v-for='lesson in lessons'
                   :key='lesson.id'
@@ -10,6 +10,7 @@
                   orderable='true'
                   @edit='editItemClicked(lesson)'
                   @click.native='itemSelected(lesson)'
+                  :item='lesson'
             >
                 {{ lesson.name }}
             </Tile>
@@ -36,59 +37,63 @@ import Tile from '../components/curriculum/Tile';
 import AuthCheckMixin from "../mixins/AuthCheckMixin";
 
 export default {
-  name: 'LessonList',
-  methods: {
-    reorderLessons() {
-      console.log('bob');
-      const ordered_lesson_ids = this.lessons.map((lesson) => lesson.id);
-      this.$http.post(`/curriculum/unit/order/${this.unitId}`, {lessonIds: ordered_lesson_ids});
-    },
-    newItemClicked() {
-      this.currentEditing = {...this.itemTemplate};
-      this.showEditModal = true;
-    },
-    async submitModal() {
-      this.$store.commit('setIsLoading', true);
+    name: 'LessonList',
+    methods: {
+        reorderLessons() {
+            console.log('bob');
+            const ordered_lesson_ids = this.lessons.map((lesson) => lesson.id);
+            this.$http.post(`/curriculum/unit/order/${this.unitId}`, {lessonIds: ordered_lesson_ids});
+        },
+        newItemClicked() {
+            this.currentEditing = {...this.itemTemplate};
+            this.showEditModal = true;
+        },
+        async submitModal() {
+            this.$store.commit('setIsLoading', true);
 
-      await this.$http.post('/curriculum/lessons', this.currentEditing).then((response) => {
-        if (this.currentEditing.id === undefined) {
-          this.currentEditing.id = response.data;
-          this.lessons.push({...this.currentEditing});
-        } else {
-          const itemEdited = this.lessons.find((lesson) => lesson.id === this.currentEditing.id);
-          Object.assign(itemEdited, this.currentEditing);
+            await this.$http.post('/curriculum/lessons', this.currentEditing).then((response) => {
+                if (this.currentEditing.id === undefined) {
+                    this.currentEditing.id = response.data;
+                    this.lessons.push({...this.currentEditing});
+                } else {
+                    const itemEdited = this.lessons.find((lesson) => lesson.id === this.currentEditing.id);
+                    Object.assign(itemEdited, this.currentEditing);
+                }
+                this.closeModal();
+            }).finally(() => this.$store.commit('setIsLoading', false));
+        },
+        closeModal() {
+            this.showEditModal = false;
+        },
+        editItemClicked(item) {
+            this.currentEditing = {...item};
+            this.showEditModal = true;
+        },
+        itemSelected(item) {
+            this.$store.commit('setActiveLesson', item);
+            this.$router.push({name: 'lesson_detail', params: {lessonId: item.id}});
         }
-        this.closeModal();
-      }).finally(() => this.$store.commit('setIsLoading', false));
     },
-    closeModal() {
-      this.showEditModal = false;
+    data() {
+        return {
+            showEditModal: false,
+            itemTemplate: {id: undefined, name: '', unit_id: this.unitId},
+            currentEditing: {id: undefined, name: ''},
+            lessons: []
+        }
     },
-    editItemClicked(item) {
-      this.currentEditing = {...item};
-      this.showEditModal = true;
+    created() {
+        this.$http.get(`/curriculum/unit/${this.unitId}`).then((response) => {
+            this.lessons = response.data['lessons'];
+        });
     },
-    itemSelected(item) {
-      this.$router.push({name: 'lesson_detail', params: { lessonId: item.id }});
-    }
-  },
-  data() {
-    return {
-      showEditModal: false,
-      itemTemplate: { id: undefined, name: '', unit_id: this.unitId },
-      currentEditing: { id: undefined, name: '' },
-      lessons: [ ]
-    }
-  },
-  created() {
-    this.$http.get(`/curriculum/unit/${this.unitId}`).then((response) => {
-      this.lessons = response.data['lessons'];
-    });
-  },
-  props: ['unitId'],
-  components: {
-    EditItemModal, Tile, draggable
-  },
-  mixins: [AuthCheckMixin]
+    props: ['unitId'],
+    beforeUpdate() {
+        this.$store.commit('clearCurrentLesson');
+    },
+    components: {
+        EditItemModal, Tile, draggable
+    },
+    mixins: [AuthCheckMixin]
 }
 </script>

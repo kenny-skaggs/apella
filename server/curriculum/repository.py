@@ -49,6 +49,18 @@ class UnitRepository:
 
         db_unit.name = unit.name
 
+        db_resources = [
+            schema.Resource(
+                name=resource.name,
+                link=resource.link
+            )
+            for resource in unit.resources
+        ]
+        db_unit.resource_refs = [
+            schema.UnitResource(resource=resource)
+            for resource in db_resources
+        ]
+
         session.flush()
         return db_unit.id
 

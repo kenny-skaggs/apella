@@ -1,16 +1,16 @@
 <template>
-  <div class="columns is-gapless">
-    <div class="column is-2">
-      <b-button @click='addNewPage' v-if='userIsAuthor'>Add Page</b-button>
-      <PageNavigation :pages='pages' @pageClicked='pageSelected' :selected-page-id='selectedPageId'
-          @deletePage='deletePage' :editable='userIsAuthor' :lesson-id='lessonId' />
+    <div class="columns is-gapless">
+        <div class="column is-2">
+            <b-button @click='addNewPage' v-if='userIsAuthor'>Add Page</b-button>
+            <PageNavigation :pages='pages' @pageClicked='pageSelected' :selected-page-id='selectedPageId'
+                            @deletePage='deletePage' :editable='userIsAuthor' :lesson-id='lessonId'/>
+        </div>
+        <div class="column" v-if='selectedPage !== undefined'>
+            <LessonAuthor v-if='userIsAuthor' :selected-page='selectedPage' v-model='selectedPage.html'/>
+            <LessonTeacher v-else-if='userIsTeacher' :lesson-html='selectedPage.html' :page-id='selectedPageId'/>
+            <LessonStudent v-else :lesson-html='selectedPage.html'/>
+        </div>
     </div>
-    <div class="column" v-if='selectedPage !== undefined'>
-      <LessonAuthor v-if='userIsAuthor' :selected-page='selectedPage' v-model='selectedPage.html' />
-      <LessonTeacher v-else-if='userIsTeacher' :lesson-html='selectedPage.html' :page-id='selectedPageId' />
-      <LessonStudent v-else :lesson-html='selectedPage.html' />
-    </div>
-  </div>
 </template>
 
 <script>
@@ -22,54 +22,57 @@ import LessonAuthor from "./LessonAuthor";
 
 
 export default {
-  name: 'Lesson',
-  methods: {
-    pageSelected(page) {
-      this.selectedPageId = page.id;
+    name: 'Lesson',
+    methods: {
+        pageSelected(page) {
+            this.selectedPageId = page.id;
+        },
+        addNewPage() {
+            this.pages.push({
+                id: undefined,
+                name: '',
+                lesson_id: this.lessonId,
+                html: ''
+            })
+        },
+        deletePage(pageId) {
+            const index = this.pages.findIndex((page) => page.id === pageId);
+            if (index >= 0) {
+                this.pages.splice(index, 1);
+            }
+        }
     },
-    addNewPage() {
-      this.pages.push({
-        id: undefined,
-        name: '',
-        lesson_id: this.lessonId,
-        html: ''
-      })
+    data() {
+        return {
+            selectedPageId: undefined,
+            pages: []
+        }
     },
-    deletePage(pageId) {
-      const index = this.pages.findIndex((page) => page.id === pageId);
-      if (index >= 0) {
-        this.pages.splice(index, 1);
-      }
-    }
-  },
-  data() {
-    return {
-      selectedPageId: undefined,
-      pages: []
-    }
-  },
-  created() {
-    this.$http.get(`/curriculum/lesson/${this.lessonId}`).then((response) => {
-      this.pages = response.data['pages'];
+    created() {
+        this.$http.get(`/curriculum/lesson/${this.lessonId}`).then((response) => {
+            this.pages = response.data['pages'];
 
-      if (this.selectedPageId === undefined && this.pages.length > 0) {
-        this.selectedPageId = this.pages[0].id;
-      }
-    });
-  },
-  computed: {
-    selectedPage() {
-      return this.pages.find((page) => page.id === this.selectedPageId);
-    }
-  },
-  props: ['lessonId'],
-  components: {
-    LessonAuthor,
-    LessonTeacher,
-    LessonStudent,
-    PageNavigation,
-  },
-  mixins: [AuthCheckMixin]
+            if (this.selectedPageId === undefined && this.pages.length > 0) {
+                this.selectedPageId = this.pages[0].id;
+            }
+        });
+    },
+    computed: {
+        selectedPage() {
+            return this.pages.find((page) => page.id === this.selectedPageId);
+        }
+    },
+    props: ['lessonId'],
+    beforeUpdate() {
+        this.$store.commit('setLessonId', this.lessonId);
+    },
+    components: {
+        LessonAuthor,
+        LessonTeacher,
+        LessonStudent,
+        PageNavigation,
+    },
+    mixins: [AuthCheckMixin]
 }
 </script>
 
@@ -77,16 +80,16 @@ export default {
 @import "~bulmaswatch/darkly/variables"
 
 .apella-question
-  border-radius: 5px
-  margin: 1em
-  padding: 1em
+    border-radius: 5px
+    margin: 1em
+    padding: 1em
 
-  &.choice
-    display: flex
-    width: fit-content
+    &.choice
+        display: flex
+        width: fit-content
 
-    .question-choice
-      padding: 1em
-      border-radius: 0.5em
+        .question-choice
+            padding: 1em
+            border-radius: 0.5em
 
 </style>

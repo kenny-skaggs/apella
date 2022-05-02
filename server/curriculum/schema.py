@@ -1,3 +1,4 @@
+from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy.ext.orderinglist import ordering_list
@@ -15,7 +16,7 @@ class Course(BaseModel):
     author_id = sa.Column(sa.Integer, sa.ForeignKey(User.id))
     author = relationship(User, backref='authored_courses')
 
-    units = relationship('Unit', back_populates='course',
+    units: List['Unit'] = relationship('Unit', back_populates='course',
                          order_by='Unit.position', collection_class=ordering_list('position'))
 
     def to_model(self, with_units=False) -> model.Course:
@@ -24,7 +25,7 @@ class Course(BaseModel):
             name=self.name
         )
         if with_units:
-            result.units = [unit.to_model() for unit in self.units]
+            result.units = [unit.to_model(with_resources=True) for unit in self.units]
         return result
 
 
@@ -37,16 +38,20 @@ class Unit(BaseModel):
     course_id = sa.Column(sa.Integer, sa.ForeignKey(Course.id))
     course = relationship(Course, back_populates='units')
 
-    lessons = relationship('Lesson', back_populates='unit',
+    lessons: List['Lesson'] = relationship('Lesson', back_populates='unit',
                            order_by='Lesson.position', collection_class=ordering_list('position'))
 
-    def to_model(self, with_lessons=False):
+    resource_refs: List['UnitResource'] = relationship('UnitResource', back_populates='unit')
+
+    def to_model(self, with_lessons=False, with_resources=False):
         result = model.Unit(
             id=self.id,
             name=self.name
         )
         if with_lessons:
-            result.lessons = [lesson.to_model() for lesson in self.lessons]
+            result.lessons = [lesson.to_model(with_resources=True) for lesson in self.lessons]
+        if with_resources:
+            result.resources = [resource_ref.resource.to_model() for resource_ref in self.resource_refs]
 
         return result
 
@@ -66,13 +71,17 @@ class Lesson(BaseModel):
     pages = relationship('Page', back_populates='lesson',
                          order_by='Page.position', collection_class=ordering_list('position'))
 
-    def to_model(self, with_pages=False):
+    resource_refs: List['LessonResource'] = relationship('LessonResource', back_populates='lesson')
+
+    def to_model(self, with_pages=False, with_resources=False):
         result = model.Lesson(
             id=self.id,
             name=self.name
         )
         if with_pages:
             result.pages = [page.to_model() for page in self.pages]
+        if with_resources:
+            result.resources = [resource_ref.resource.to_model() for resource_ref in self.resource_refs]
         return result
 
 
@@ -154,3 +163,40 @@ class RubricItem(BaseModel):
             points=self.points
         )
         return result
+
+
+class Resource(BaseModel):
+    """Link to external resource for teachers"""
+    __tablename__ = 'resource'
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(300))
+    link = sa.Column(sa.String(500))
+
+    def to_model(self) -> model.Resource:
+        return model.Resource(
+            id=self.id,
+            name=self.name,
+            link=self.link
+        )
+
+
+class UnitResource(BaseModel):
+    __tablename__ = 'unit_resource'
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    unit_id = sa.Column(sa.Integer, sa.ForeignKey(Unit.id))
+    unit = relationship(Unit, back_populates='resource_refs')
+
+    resource_id = sa.Column(sa.Integer, sa.ForeignKey(Resource.id))
+    resource = relationship(Resource, backref='unit_refs')
+
+
+class LessonResource(BaseModel):
+    __tablename__ = 'lesson_resource'
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    lesson_id = sa.Column(sa.Integer, sa.ForeignKey(Lesson.id))
+    lesson = relationship(Lesson, back_populates='resource_refs')
+
+    resource_id = sa.Column(sa.Integer, sa.ForeignKey(Resource.id))
+    resource: Resource = relationship(Resource, backref='lesson_refs')

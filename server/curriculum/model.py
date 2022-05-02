@@ -18,6 +18,7 @@ class Unit(Serializable):
     name: str
     course_id: int = None
     lessons: List['Lesson'] = None
+    resources: List['Resource'] = None
 
 
 @dataclass
@@ -26,6 +27,7 @@ class Lesson(Serializable):
     name: str
     unit_id: int = None
     pages: List['Page'] = None
+    resources: List['Resource'] = None
 
 
 @dataclass
@@ -64,3 +66,23 @@ class RubricItem(Serializable):
     id: Optional[int]
     text: str
     points: int
+
+
+@dataclass
+class Resource(Serializable):
+    id: Optional[int]
+    name: str
+    link: str
+
+    @classmethod
+    def from_json(cls, json):
+        return Resource(
+            id=json.get('id'),
+            name=json['name'],
+            link=json['link']
+        )
+
+    @classmethod
+    def list_from_json(cls, json_list):
+        return [Resource.from_json(resource_json) for resource_json in json_list]
+

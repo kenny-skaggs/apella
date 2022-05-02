@@ -15,7 +15,11 @@ export default new Vuex.Store({
         user: undefined,
         selectedClassId: undefined,
         uniqueId: 0,
-        toast: undefined
+        toast: undefined,
+
+        activeCourse: undefined,
+        activeUnit: undefined,
+        activeLesson: undefined
     },
     mutations: {
         setIsLoading (state, loading) {
@@ -33,7 +37,31 @@ export default new Vuex.Store({
             state.selectedClassId = class_id
         },
         showToast (state, toast) {
-            state.toast = toast
+            state.toast = toast;
+        },
+        setActiveCourse (state, course) {
+            state.activeCourse = course;
+            state.activeUnit = undefined;
+            state.activeLesson = undefined;
+        },
+        setActiveUnit (state, unit) {
+            state.activeUnit = unit;
+            state.activeLesson = undefined;
+        },
+        setActiveLesson (state, lesson) {
+            state.activeLesson = lesson;
+        },
+        clearCurrentCourse(state) {
+            state.activeCourse = undefined;
+            state.activeUnit = undefined;
+            state.activeLesson = undefined;
+        },
+        clearCurrentUnit(state) {
+            state.activeUnit = undefined;
+            state.activeLesson = undefined;
+        },
+        clearCurrentLesson(state){
+            state.activeLesson = undefined;
         }
     },
     getters: {
