@@ -50,6 +50,8 @@ export default {
     },
     created() {
         this.$http.get(`/curriculum/lesson/${this.lessonId}`).then((response) => {
+            this.$store.commit('setActiveLesson', this.lessonId);
+
             this.pages = response.data['pages'];
 
             if (this.selectedPageId === undefined && this.pages.length > 0) {
@@ -63,9 +65,6 @@ export default {
         }
     },
     props: ['lessonId'],
-    beforeUpdate() {
-        this.$store.commit('setLessonId', this.lessonId);
-    },
     components: {
         LessonAuthor,
         LessonTeacher,

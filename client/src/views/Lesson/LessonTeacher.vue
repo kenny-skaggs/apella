@@ -138,4 +138,12 @@ export default {
                 .answer
                     background: $grey
                     padding: 0.5em
+
+    .toggle-lock-btn
+        &:hover
+            cursor: pointer
+            background: $grey
+
+        padding: 0.75em
+        width: 2.75em
 </style>

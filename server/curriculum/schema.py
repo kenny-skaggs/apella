@@ -16,8 +16,12 @@ class Course(BaseModel):
     author_id = sa.Column(sa.Integer, sa.ForeignKey(User.id))
     author = relationship(User, backref='authored_courses')
 
-    units: List['Unit'] = relationship('Unit', back_populates='course',
-                         order_by='Unit.position', collection_class=ordering_list('position'))
+    unit_refs: List['CourseUnit'] = relationship(
+        'CourseUnit',
+        back_populates='course',
+        order_by='CourseUnit.position',
+        collection_class=ordering_list('position')
+    )
 
     def to_model(self, with_units=False) -> model.Course:
         result = model.Course(
@@ -25,18 +29,26 @@ class Course(BaseModel):
             name=self.name
         )
         if with_units:
-            result.units = [unit.to_model(with_resources=True) for unit in self.units]
+            result.units = [ref.unit.to_model(with_resources=True) for ref in self.unit_refs]
         return result
+
+
+class CourseUnit(BaseModel):
+    __tablename__ = 'course_unit'
+    id = sa.Column(sa.Integer, primary_key=True)
+    position = sa.Column(sa.Integer)
+
+    course_id = sa.Column(sa.Integer, sa.ForeignKey(Course.id))
+    course = relationship(Course, back_populates='unit_refs')
+
+    unit_id = sa.Column(sa.Integer, sa.ForeignKey('unit.id'))
+    unit = relationship('Unit', backref='course_refs')
 
 
 class Unit(BaseModel):
     __tablename__ = 'unit'
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
-    position = sa.Column(sa.Integer)
-
-    course_id = sa.Column(sa.Integer, sa.ForeignKey(Course.id))
-    course = relationship(Course, back_populates='units')
 
     lessons: List['Lesson'] = relationship('Lesson', back_populates='unit',
                            order_by='Lesson.position', collection_class=ordering_list('position'))
@@ -54,9 +66,6 @@ class Unit(BaseModel):
             result.resources = [resource_ref.resource.to_model() for resource_ref in self.resource_refs]
 
         return result
-
-    # TODO: Course <-> Unit will at least need to be a many-to-many at the start.
-    #  Should Lessons, pages, sections, be too?
 
 
 class Lesson(BaseModel):

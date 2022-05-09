@@ -49,7 +49,10 @@ class ParagraphResponseDataView extends ResponseDataView{
             .data(Object.values(studentMap))
             .join('div')
             .attr('class', 'student-response paragraph')
-            .html(function(student) {
+            .attr('response-id', function(student) {
+                const response = thisTracker.responseMap[student.id];
+                return response.id;
+            }).html(function(student) {
                 const response = thisTracker.responseMap[student.id];
                 if (response === undefined) {
                     return `<div class="name">${student.username}</div>`;
@@ -159,6 +162,7 @@ class ChoiceResponseDataView extends ResponseDataView {
             .data(Object.values(studentMap))
             .join('div')
             .attr('class', 'student-response choice')
+            .attr('student-id', (student) => student.id)
             .html(function(student) {
                 const response = thisTracker.responseMap[student.id];
                 if (response === undefined || response.selected_option_ids.length === 0) {
@@ -168,8 +172,14 @@ class ChoiceResponseDataView extends ResponseDataView {
                     for (const optionId of response.selected_option_ids) {
                         response_selections += thisTracker.optionIndicatorMap[optionId];
                     }
+                    const lockIconClass = response.locked ? 'fa-lock' : 'fa-lock-open';
                     return `<div class="name">${student.username}</div>
-                            <div class="selection"><span>${response_selections}</span></div>`;
+                            <div class="flex-row">
+                                <i class="toggle-lock-btn fas ${lockIconClass}"></i>
+                                <div class="selection">
+                                    <span>${response_selections}</span>
+                                </div>
+                            </div>`;
                 }
             })
     }
@@ -251,6 +261,20 @@ function toggleDetailedResponseDisplay(event) {
     }
 }
 
+function toggleResponseLock(event) {
+    const $lockElement = $(event.target);
+    const $responseElement = $($lockElement.closest('.student-response'));
+    const $questionElement = $($responseElement.closest('.apella-responses'));
+
+    const questionId = $questionElement.attr('questionid');
+    const studentId = $responseElement.attr('student-id');
+
+    const tracker = questionResponseTrackers[questionId];
+    const response = tracker.responseMap[studentId];
+    response.locked = !response.locked;
+    tracker.renderDetailedDisplay();
+}
+
 let vueComponent = undefined;
 export default {
     initialize(studentList, component) {
@@ -258,6 +282,16 @@ export default {
         for (const student of studentList) {
             studentMap[student.id] = student;
         }
+
+        /*
+        Need to have the lesson.js module initialized with a function to interact with the server for locking/unlocking.
+        (Vue's Axios has the web token, and the base url. I don't really want to get them here too).
+
+        Call that function here. And give that function a success callback to have the response updated and tracker
+        view refreshed.
+         */
+
+        $('body').on('click', '.toggle-lock-btn', toggleResponseLock);
 
         vueComponent = component;
     },

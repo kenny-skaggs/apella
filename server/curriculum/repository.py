@@ -1,5 +1,6 @@
-
 from typing import List
+
+from sqlalchemy.orm import joinedload
 
 from core import needs_session
 from curriculum import schema, model
@@ -15,7 +16,12 @@ class CourseRepository:
     @classmethod
     @needs_session
     def get_by_id(cls, _id, session) -> model.Course:
-        course = session.query(schema.Course).get(_id)
+        course = (
+            session.query(schema.Course)
+            .options(
+                joinedload(schema.Course.unit_refs).joinedload(schema.CourseUnit.unit)
+            )
+        ).get(_id)
         return course.to_model(with_units=True)
 
     @classmethod
@@ -44,7 +50,10 @@ class UnitRepository:
     def upsert(cls, unit: model.Unit, session):
         db_unit = session.query(schema.Unit).get(unit.id)
         if not db_unit:
-            db_unit = schema.Unit(course_id=unit.course_id)
+            db_unit = schema.Unit()
+            db_unit.course_refs.append(
+                schema.CourseUnit(course_id=unit.course_id)
+            )
             session.add(db_unit)
 
         db_unit.name = unit.name

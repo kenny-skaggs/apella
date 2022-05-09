@@ -16,6 +16,7 @@ class Answer(Serializable):
     user_id: int
     question_id: int
     id: int = None
+    locked: bool = True
     selected_option_ids: List[int] = None
     text: str = None
     rubric_grades: List[RubricGrade] = None

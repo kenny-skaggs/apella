@@ -81,7 +81,7 @@ export default {
     data() {
         return {
             showEditModal: false,
-            itemTemplate: {id: undefined, name: '', course_id: this.courseId},
+            itemTemplate: {id: undefined, name: '', course_id: this.courseId, resources: []},
             currentEditing: {id: undefined, name: '', resources: []},
             units: []
         }

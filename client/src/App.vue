@@ -142,4 +142,10 @@ export default {
 
 #app .loading-overlay .loading-background
     background: rgba($background, 0.5)
+
+.flex-row
+    display: flex
+    flex-direction: row
+    align-items: center
+
 </style>
