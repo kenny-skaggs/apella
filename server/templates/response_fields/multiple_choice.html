@@ -1,19 +1,31 @@
-<div class="apella-question choice" questionId="{{ question_id }}" type="choice">
-    {% for option in options %}
-        <div option-id="{{ option.id }}" class="question-choice {{ 'selected' if answer and (option.id in answer.selected_option_ids) else '' }}">
-            {% if is_teacher %}
-                {{ option.html|safe }}
-                <div class="chart-container">
-                    <label>{{ chr(loop.index + 64) }}</label>
-                    <svg>
-                        <g class="response-chart">
-                            <rect height="100%" fill="green" />
-                        </g>
-                    </svg>
-                </div>
-            {% else %}
-                {{ option.html|safe }}
-            {% endif %}
+<div class="apella-question choice {{ 'locked' if answer.locked else '' }}"
+     questionId="{{ question_id }}"
+     type="choice"
+>
+    <div class="choice-panel">
+        {% for option in options %}
+            <div option-id="{{ option.id }}" class="question-choice {{ 'selected' if answer and (option.id in answer.selected_option_ids) else '' }}">
+                {% if is_teacher %}
+                    {{ option.html|safe }}
+                    <div class="chart-container">
+                        <label>{{ chr(loop.index + 64) }}</label>
+                        <svg>
+                            <g class="response-chart">
+                                <rect height="100%" fill="green" />
+                            </g>
+                        </svg>
+                    </div>
+                {% else %}
+                    {{ option.html|safe }}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% if is_student %}
+        <div>
+            <button type="button" class="button submit-btn" {{ 'disabled="disabled"' if answer.locked else '' }}>
+                <span>Submit</span>
+            </button>
         </div>
-    {% endfor %}
+    {% endif %}
 </div>

@@ -1,7 +1,14 @@
 {% if not is_teacher %}
-    <input onkeyup='$(this).trigger("response-input", this.value)' questionId="{{ question_id }}" answerType="text"
-        value="{{ answer.text if answer and answer.text else '' }}"
-    />
+    <span class="apella-inline text">
+        <input onkeyup='$(this).trigger("response-input", this.value)'
+               questionId="{{ question_id }}" answerType="text"
+               value="{{ answer.text if answer and answer.text else '' }}"
+               class="input short-answer-input inline-input"
+        />
+        <button type="button" class="button inline-submit">
+            Submit
+        </button>
+    </span>
 {% else %}
     <span class="apella-question" questionId="{{ question_id }}" type="inline-text">
         Inline text responses

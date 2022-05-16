@@ -3,42 +3,82 @@
 </template>
 
 <script>
+import DebounceMixin from "../../mixins/DebounceMixin";
+
 export default {
     name: 'LessonStudent',
     methods: {
-        answerSelected(questionId, answer) {
-
-            this.$socket.client.emit('response_provided', {
-                questionId: questionId,
-                answer: answer
+        answerSelected(questionId, answer, submitted) {
+            this.debounce(questionId, () => {
+                this.$socket.client.emit('response_provided', {
+                    questionId: questionId,
+                    answer: answer,
+                    submitted: submitted
+                });
             });
+        },
+        sendChoiceAnswer($questionElement, submitAnswer) {
+            const questionId = $questionElement.attr('questionId');
+
+            // TODO: when submitting an answer, need to display something if it fails
+
+            const answerIds = $questionElement.find('.question-choice.selected').map((index, element) => $(element).attr('option-id'));
+            this.answerSelected(questionId, answerIds.get(), submitAnswer);
         }
     },
     created() {
         $('body').on('response-input', (event, answer) => {
             const $target = $(event.target);
-            this.answerSelected($target.attr('questionId'), answer);
+            this.answerSelected($target.attr('questionId'), answer, false);
+
+            // TODO: need to be able to submit paragraph, short answer, and dropdown selection
         });
-        $('body').on('click', '.apella-question.choice .question-choice', ({target}) => {
+
+        $('body').on('click', '.apella-question.paragraph .submit-btn', ({target}) => {
             const $questionElement = $(target).closest('.apella-question');
             const questionId = $questionElement.attr('questionId');
-            $(target).closest('.question-choice').toggleClass('selected');
+            const $textAreaInput = $questionElement.find('textarea');
 
-            const answerIds = $questionElement.find('.question-choice.selected').map((index, element) => $(element).attr('option-id'));
-            this.answerSelected(questionId, answerIds.get());
+            this.answerSelected(questionId, $textAreaInput.val(), true);
         });
+
+        $('body').on('click', '.apella-inline.text .inline-submit', ({target}) => {
+            const $container = $(target).closest('.apella-inline');
+            const $input = $container.find('input');
+
+            this.answerSelected($input.attr('questionid'), $input.val(), true);
+        });
+
+        $('body').on('click', '.apella-inline.dropdown .inline-submit', ({target}) => {
+            const $container = $(target).closest('.apella-inline');
+            const $input = $container.find('select');
+
+            this.answerSelected($input.attr('questionid'), $input.val(), true);
+        });
+
+        $('body').on('click', '.apella-question.choice .question-choice', ({target}) => {
+            $(target).closest('.question-choice').toggleClass('selected');
+            this.sendChoiceAnswer($(target).closest('.apella-question'), false);
+        });
+        $('body').on('click', '.apella-question.choice .submit-btn', ({target}) => {
+            this.sendChoiceAnswer($(target).closest('.apella-question'), true);
+
+            // TODO: disable after submit
+        });
+
         $('body').on('click', '.apella-question.rubric .submit-btn', ({target}) => {
             const $questionElement = $(target).closest('.apella-question');
             const questionId = $questionElement.attr('questionId');
             const projectInput = $questionElement.find('.rubric-input');
 
-            this.answerSelected(questionId, projectInput.val());
+            this.answerSelected(questionId, projectInput.val(), true);
         })
     },
     mounted() {
         this.$socket.client.connect();
     },
-    props: ['lessonHtml']
+    props: ['lessonHtml'],
+    mixins: [DebounceMixin]
 }
 </script>
 
@@ -55,7 +95,8 @@ export default {
                 border: 1px solid $grey
                 margin: calc(0.5em - 1px)
 
-            &:hover
+        &:not(.locked)
+            .question-choice:hover
                 background: $grey
                 cursor: pointer
 

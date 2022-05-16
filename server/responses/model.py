@@ -15,8 +15,9 @@ class RubricGrade(Serializable):
 class Answer(Serializable):
     user_id: int
     question_id: int
+    locked: bool
+    submitted: bool
     id: int = None
-    locked: bool = True
     selected_option_ids: List[int] = None
     text: str = None
     rubric_grades: List[RubricGrade] = None

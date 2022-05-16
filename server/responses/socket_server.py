@@ -16,9 +16,11 @@ def initialize_server(app: Flask) -> SocketIO:
         answer = responses_service.answer_provided(
             user_id=user.identity,
             question_id=response_data['questionId'],
+            submitted=response_data['submitted'],
             answer=response_data['answer']
         )
-        emit('newResponse', answer.to_dict(), broadcast=True)
+        if answer.submitted:
+            emit('newResponse', answer.to_dict(), broadcast=True)
         # TODO: have responses only go to subscribed teacher connections
 
     return server

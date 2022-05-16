@@ -1,6 +1,20 @@
-<div class="apella-question" questionId="{{ question_id }}" type="paragraph">
+<div class="apella-question paragraph" questionId="{{ question_id }}" type="paragraph">
     {% if not is_teacher %}
-        <textarea onkeyup='$(this).trigger("response-input", this.value)' questionId="{{ question_id }}" answerType="text" >{{ answer.text if answer and answer.text else '' }}</textarea>
+        <textarea onkeyup='$(this).trigger("response-input", this.value)'
+                  questionId="{{ question_id }}"
+                  answerType="text"
+                  {{ 'disabled="disabled"' if answer.locked else '' }}
+        >
+            {{- answer.text if answer and answer.text else '' -}}
+        </textarea>
+
+        {% if is_student %}
+            <div>
+                <button type="button" class="button submit-btn" {{ 'disabled="disabled"' if answer.locked else '' }}>
+                    <span>Submit</span>
+                </button>
+            </div>
+        {% endif %}
     {% else %}
         Written responses
     {% endif %}

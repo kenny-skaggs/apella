@@ -89,7 +89,8 @@ class LessonRenderer(_HtmlProcessor):
             question_id=question_id,
             answer=answer,
             options=options,
-            is_teacher=self.render_target == RenderTarget.TEACHING
+            is_teacher=self.render_target == RenderTarget.TEACHING,
+            is_student=self.render_target == RenderTarget.RESPONDING
         )
         self._replace_node(node, display_html)
 
@@ -100,7 +101,8 @@ class LessonRenderer(_HtmlProcessor):
             'response_fields/paragraph_text.html',
             question_id=question_id,
             answer=answer,
-            is_teacher=self.render_target == RenderTarget.TEACHING
+            is_teacher=self.render_target == RenderTarget.TEACHING,
+            is_student=self.render_target == RenderTarget.RESPONDING
         )
         self._replace_node(node, display_html)
 

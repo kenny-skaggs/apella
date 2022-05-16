@@ -18,6 +18,18 @@ class Responses(Resource):
         }
 
 
+class ResponseLockManagement(Resource):
+    @classmethod
+    @auth.requires_roles(Role.TEACHER)
+    def post(cls):
+        json = request.json
+        repository.AnswerRepository.updateResponseLock(
+            response_id=json['responseId'],
+            locked=json['locked']
+        )
+        return 200
+
+
 class GradeRubricItem(Resource):
     @classmethod
     @auth.requires_roles(Role.TEACHER)
@@ -35,4 +47,5 @@ blueprint = Blueprint('responses', __name__)
 
 api = Api(blueprint)
 api.add_resource(Responses, '/<int:page_id>')
+api.add_resource(ResponseLockManagement, '/lock')
 api.add_resource(GradeRubricItem, '/answer/<int:answer_id>/grade-rubric-item/<int:rubric_item_id>')

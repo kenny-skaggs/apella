@@ -2,12 +2,25 @@ import * as d3 from "d3";
 
 const classSize = 10;
 
-function buildResponseMap(responseList) {
-    const responseMap = {};
-    responseList.forEach((response) => {
-        responseMap[response.user_id] = response
-    });
-    return responseMap
+class ResponseMap {
+    constructor(responseList) {
+        this.map = {};
+        responseList.forEach((response) => {
+            this.map[this._id_to_key(response.user_id)] = response
+        });
+    }
+
+    get_response(student_id) {
+        return this.map[this._id_to_key(student_id)];
+    }
+
+    set_response(student_id, response) {
+        this.map[this._id_to_key(student_id)] = response;
+    }
+
+    _id_to_key(value) {
+        return parseInt(value);
+    }
 }
 
 class IdCounts {
@@ -30,12 +43,12 @@ class IdCounts {
 
 class ResponseDataView {
     constructor(responseList, questionId) {
-        this.responseMap = buildResponseMap(responseList)
+        this.responseMap = new ResponseMap(responseList)
         this.questionId = questionId;
     }
 
     updateResponse(response) {
-        this.responseMap[response.user_id] = response;
+        this.responseMap.set_response(response.user_id, response);
         this.renderDetailedDisplay();
     }
 }
@@ -49,15 +62,18 @@ class ParagraphResponseDataView extends ResponseDataView{
             .data(Object.values(studentMap))
             .join('div')
             .attr('class', 'student-response paragraph')
-            .attr('response-id', function(student) {
-                const response = thisTracker.responseMap[student.id];
-                return response.id;
-            }).html(function(student) {
-                const response = thisTracker.responseMap[student.id];
+            .attr('student-id', (student) => student.id)
+            .html(function(student) {
+                const response = thisTracker.responseMap.get_response(student.id);
+
                 if (response === undefined) {
                     return `<div class="name">${student.username}</div>`;
                 } else {
-                    return `<div class="name">${student.username}</div>
+                    const lockIconClass = response.locked ? 'fa-lock' : 'fa-lock-open';
+                    return `<div class="name">
+                                <span>${student.username}</span>
+                                <i class="toggle-lock-btn fas ${lockIconClass}"></i>
+                            </div>
                             <div class="answer"><span>${response.text}</span></div>`;
                 }
             });
@@ -74,7 +90,7 @@ class InlineTextResponseDataView extends ResponseDataView {
             .join('div')
             .attr('class', 'student-response inline-text')
             .html(function(student) {
-                const response = thisTracker.responseMap[student.id];
+                const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined) {
                     return `<div class="name">${student.username}</div>`;
                 } else {
@@ -107,7 +123,7 @@ class InlineSelectResponseDataView extends ResponseDataView {
             .join('div')
             .attr('class', 'student-response inline-select')
             .html(function(student) {
-                const response = thisTracker.responseMap[student.id];
+                const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined || !response.selected_option_ids
                         || response.selected_option_ids.length === 0) {
                     return `<div class="name">${student.username}</div>`;
@@ -134,7 +150,7 @@ class ChoiceResponseDataView extends ResponseDataView {
 
     #buildSummary() {
         this.selectedOptionCounts = new IdCounts();
-        Object.values(this.responseMap).forEach((response) => {
+        Object.values(this.responseMap.map).forEach((response) => {
             this.#addResponseToSummary(response);
         });
     }
@@ -144,7 +160,7 @@ class ChoiceResponseDataView extends ResponseDataView {
     }
 
     #removeUserResponseFromSummary(userId) {
-        const response = this.responseMap[userId];
+        const response = this.responseMap.get_response(userId);
         response.selected_option_ids.forEach((selectedId) => this.selectedOptionCounts.decrement(selectedId));
     }
 
@@ -164,7 +180,7 @@ class ChoiceResponseDataView extends ResponseDataView {
             .attr('class', 'student-response choice')
             .attr('student-id', (student) => student.id)
             .html(function(student) {
-                const response = thisTracker.responseMap[student.id];
+                const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined || response.selected_option_ids.length === 0) {
                     return `<div class="name">${student.username}</div>`;
                 } else {
@@ -185,12 +201,12 @@ class ChoiceResponseDataView extends ResponseDataView {
     }
 
     updateResponse(response) {
-        if (this.responseMap[response.user_id] !== undefined) {
+        if (this.responseMap.get_response(response.user_id) !== undefined) {
             this.#removeUserResponseFromSummary(response.user_id);
         }
 
         super.updateResponse(response);
-        this.responseMap[response.user_id] = response;
+        this.responseMap.set_response(response.user_id, response);
         this.renderDetailedDisplay();
 
         this.#addResponseToSummary(response);
@@ -222,7 +238,7 @@ class RubricResponseDataView extends ResponseDataView {
             .join('div')
             .attr('class', 'student-response paragraph')
             .html(function(student) {
-                const response = thisTracker.responseMap[student.id];
+                const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined) {
                     return `<div class="name">${student.username}</div>`;
                 } else {
@@ -244,8 +260,9 @@ function toggleDetailedResponseDisplay(event) {
     let $expandedDisplay = $(`.apella-responses[questionId="${questionId}"]`)
 
     if (questionType === 'rubric') {
-        let rubricItems = JSON.parse($targetElement.attr('items'));
-        vueComponent.rubricDetailsSelected(questionId, rubricItems, responseTracker.responseMap, studentMap);
+        const rubricItems = JSON.parse($targetElement.attr('items'));
+        const responseMap = responseTracker !== undefined ? responseTracker.responseMap : undefined;
+        vueComponent.rubricDetailsSelected(questionId, rubricItems, responseMap, studentMap);
     } else if ($expandedDisplay.length === 0) {
         if (responseTracker !== undefined) {
             $targetElement.after(
@@ -270,14 +287,19 @@ function toggleResponseLock(event) {
     const studentId = $responseElement.attr('student-id');
 
     const tracker = questionResponseTrackers[questionId];
-    const response = tracker.responseMap[studentId];
-    response.locked = !response.locked;
-    tracker.renderDetailedDisplay();
+    const response = tracker.responseMap.get_response(studentId);
+    const setLocked = !response.locked;
+
+    setResponseLockFn(response.id, setLocked, () => {
+        response.locked = setLocked;
+        tracker.renderDetailedDisplay();
+    });
 }
 
-let vueComponent = undefined;
+let vueComponent = undefined,
+    setResponseLockFn = undefined;
 export default {
-    initialize(studentList, component) {
+    initialize(studentList, component, responseLockFn) {
         $('body').on('click', '.apella-question', toggleDetailedResponseDisplay);
         for (const student of studentList) {
             studentMap[student.id] = student;
@@ -294,30 +316,39 @@ export default {
         $('body').on('click', '.toggle-lock-btn', toggleResponseLock);
 
         vueComponent = component;
+        setResponseLockFn = responseLockFn;
     },
     initializeDisplays(response_map) {
         for (const [questionId, responseList] of Object.entries(response_map)) {
-            const $questionElement = $(`.apella-question[questionId="${questionId}"]`);
-            const questionType = $questionElement.attr('type');
-            let tracker;
-            if (questionType === 'choice') {
-                tracker = new ChoiceResponseDataView(responseList, questionId, $questionElement);
-                tracker.renderSummary();
-            } else if (questionType === 'paragraph') {
-                tracker = new ParagraphResponseDataView(responseList, questionId);
-            } else if (questionType === 'inline-text') {
-                tracker = new InlineTextResponseDataView(responseList, questionId);
-            } else if (questionType === 'inline-select') {
-                tracker = new InlineSelectResponseDataView(responseList, questionId, JSON.parse($questionElement.attr('options')));
-            } else if (questionType === 'rubric') {
-                tracker = new RubricResponseDataView(responseList, questionId);
-            }
-            if (tracker !== undefined) {
-                questionResponseTrackers[questionId] = tracker;
-            }
+            this._register_new_response_tracker(questionId, responseList);
         }
     },
     updateResponse(questionId, response) {
+        if (questionResponseTrackers[questionId] === undefined) {
+            this._register_new_response_tracker(questionId, []);
+        }
         questionResponseTrackers[questionId].updateResponse(response);
+    },
+    _register_new_response_tracker(questionId, responseList) {
+        const $questionElement = $(`.apella-question[questionId="${questionId}"]`);
+        const questionType = $questionElement.attr('type');
+
+        let tracker;
+        if (questionType === 'choice') {
+            tracker = new ChoiceResponseDataView(responseList, questionId, $questionElement);
+            tracker.renderSummary();
+        } else if (questionType === 'paragraph') {
+            tracker = new ParagraphResponseDataView(responseList, questionId);
+        } else if (questionType === 'inline-text') {
+            tracker = new InlineTextResponseDataView(responseList, questionId);
+        } else if (questionType === 'inline-select') {
+            tracker = new InlineSelectResponseDataView(responseList, questionId, JSON.parse($questionElement.attr('options')));
+        } else if (questionType === 'rubric') {
+            tracker = new RubricResponseDataView(responseList, questionId);
+        }
+
+        if (tracker !== undefined) {
+            questionResponseTrackers[questionId] = tracker;
+        }
     }
 }

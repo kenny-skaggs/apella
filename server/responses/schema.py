@@ -11,7 +11,8 @@ from responses import model
 class Answer(BaseModel):
     __tablename__ = 'answer'
     id = sa.Column(sa.Integer, primary_key=True)
-    locked = sa.Column(sa.Boolean, primary_key=True, default=True)
+    locked = sa.Column(sa.Boolean, default=False)
+    submitted = sa.Column(sa.Boolean, default=True)
     text = sa.Column(sa.String(2000))
 
     user_id = sa.Column(sa.Integer, sa.ForeignKey(general_schema.User.id))
@@ -26,6 +27,7 @@ class Answer(BaseModel):
             user_id=self.user_id,
             question_id=self.question_id,
             locked=self.locked,
+            submitted=self.submitted,
             text=self.text,
             selected_option_ids=[option_ref.option_id for option_ref in self.option_refs],
             rubric_grades=[grade.to_model() for grade in self.grades]

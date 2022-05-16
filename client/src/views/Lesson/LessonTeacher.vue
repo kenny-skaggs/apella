@@ -1,6 +1,14 @@
 <template>
     <div>
-        <b-button @click='showRubricModal'>Show rubric</b-button>
+        <b-field grouped>
+            <b-field>
+                <b-input />
+                <p class="control">
+                    <b-button @click='showRubricModal'>Show rubric</b-button>
+                </p>
+            </b-field>
+        </b-field>
+
         <div v-html='lessonHtml' class="teacher-view"/>
         <RubricModal v-model='showRubric'
                      :rubric-items='currentRubricItems'
@@ -44,13 +52,19 @@ export default {
             this.showRubric = true;
             this.currentResponseMap = responseMap;
             this.currentStudentMap = studentMap;
+        },
+        setResponseLocked(responseId, setLocked, successCallback) {
+            this.$http.post('/responses/lock', {
+                responseId: responseId,
+                locked: setLocked
+            }).then(successCallback);
         }
     },
     mounted() {
         this.$socket.client.connect();
 
         this.$http.get(`/organization/class/${this.$store.state.selectedClassId}`).then((response) => {
-            lesson_utils.initialize(response.data.students, this);
+            lesson_utils.initialize(response.data.students, this, this.setResponseLocked);
 
             if (this.pageId !== undefined) {
                 this.retrieveResponses();

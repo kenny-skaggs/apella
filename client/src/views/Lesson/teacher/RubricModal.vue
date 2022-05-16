@@ -48,13 +48,13 @@
 
 <script>
 import _ from 'underscore';
+import DebounceMixin from "../../../mixins/DebounceMixin";
 
 export default {
     props: ['rubricItems', 'value', 'responseMap', 'studentMap'],
     data() {
         return {
-            selectedStudentId: undefined,
-            timoutTracker: {}
+            selectedStudentId: undefined
         }
     },
     computed: {
@@ -68,7 +68,7 @@ export default {
         },
         currentResponse() {
             if (this.selectedStudentId !== undefined) {
-                return this.responseMap[this.selectedStudentId];
+                return this.responseMap.get_response(this.selectedStudentId);
             } else {
                 return {
                     text: '',
@@ -89,7 +89,7 @@ export default {
     },
     methods:{
         studentHasResponse(student) {
-            return student.id in this.responseMap;
+            return this.responseMap !== undefined && student.id in this.responseMap.map;
         },
         studentSelected(student) {
             this.selectedStudentId = student.id;
@@ -103,23 +103,20 @@ export default {
             }
             existingGrade.grade = newGradeValue;
 
-            let currentTimout = this.timoutTracker[[responseId, rubricItemId]];
-            if (currentTimout !== undefined) {
-                clearTimeout(currentTimout);
-            }
-            this.timoutTracker[[responseId, rubricItemId]] = setTimeout(() => {
+            this.debounce([responseId, rubricItemId], () => {
                 this.$http.post(
                     `/responses/answer/${responseId}/grade-rubric-item/${rubricItemId}`,
                     { grade: newGradeValue }
                 )
-            }, 300);
+            });
         },
     },
     watch:{
         responseMap() {
             this.selectedStudentId = undefined;
         }
-    }
+    },
+    mixins: [DebounceMixin]
 }
 </script>
 

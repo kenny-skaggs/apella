@@ -66,9 +66,33 @@ class AnswerRepository:
             schema.AnswerOption(option_id=option_id)
             for option_id in answer.selected_option_ids or []
         ]
+        db_answer.locked = answer.locked
+        db_answer.submitted = answer.submitted
 
         session.flush()
         return db_answer.to_model()
+
+    @classmethod
+    @needs_session
+    def updateResponseLock(cls, response_id, locked, session: Session):
+        session.query(
+            schema.Answer
+        ).filter(
+            schema.Answer.id == response_id
+        ).update({
+            schema.Answer.locked: locked
+        })
+
+    @classmethod
+    @needs_session
+    def find_existing(cls, answer_model: model.Answer, session: Session) -> model.Answer:
+        result: schema.Answer = session.query(
+            schema.Answer
+        ).filter(
+            schema.Answer.question_id == answer_model.question_id,
+            schema.Answer.user_id == answer_model.user_id
+        ).one_or_none()
+        return result.to_model() if result else None
 
 
 class RubricGradeRepository:
