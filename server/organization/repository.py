@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Optional, Sequence
 
 from sqlalchemy.orm import Session
 
@@ -71,3 +71,55 @@ class StudentClassRepository:
 
         session.add(student_class)
         # todo: there should be a way to make sure there aren't a bunch of duplicates
+
+
+class SchoolRepository:
+    @classmethod
+    @needs_session
+    def load_school(cls, school_id, session: Session) -> Optional[model.School]:
+        result = session.query(
+            schema.School
+        ).filter(
+            schema.School.id == school_id
+        ).one_or_none()
+        if result is None:
+            return None
+        else:
+            return result.to_model(with_courses=True)
+
+    @classmethod
+    @needs_session
+    def list_schools(cls, session: Session) -> Sequence[model.School]:
+        results = session.query(schema.School).all()
+        return [db_school.to_model() for db_school in results]
+
+    @classmethod
+    @needs_session
+    def upsert(cls, school_model: model.School, session: Session) -> model.School:
+        db_school = session.query(schema.School).get(school_model.id)
+        if not db_school:
+            db_school = schema.School()
+            session.add(db_school)
+
+        db_school.name = school_model.name
+
+        session.flush()
+        return db_school.to_model()
+
+    @classmethod
+    @needs_session
+    def link_course(cls, school_id, course_id, session: Session):
+        session.add(schema.SchoolCourse(
+            school_id=school_id,
+            course_id=course_id
+        ))
+
+    @classmethod
+    @needs_session
+    def unlink_course(cls, school_id, course_id, session: Session):
+        session.query(
+            schema.SchoolCourse
+        ).filter(
+            schema.SchoolCourse.school_id == school_id,
+            schema.SchoolCourse.course_id == course_id
+        ).delete()

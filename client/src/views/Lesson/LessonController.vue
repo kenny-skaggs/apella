@@ -19,7 +19,7 @@ import AuthCheckMixin from "../../mixins/AuthCheckMixin";
 import LessonStudent from "./LessonStudent";
 import LessonTeacher from "./LessonTeacher";
 import LessonAuthor from "./LessonAuthor";
-
+import display from "../../utils/display";
 
 export default {
     name: 'Lesson',
@@ -36,10 +36,7 @@ export default {
             })
         },
         deletePage(pageId) {
-            const index = this.pages.findIndex((page) => page.id === pageId);
-            if (index >= 0) {
-                this.pages.splice(index, 1);
-            }
+            display.removeObject(this.pages, {id: pageId}, 'id');
         }
     },
     data() {
@@ -83,12 +80,24 @@ export default {
     margin: 1em
     padding: 1em
 
-    &.choice
+    .choice-panel
         display: flex
         width: fit-content
 
         .question-choice
             padding: 1em
             border-radius: 0.5em
+
+.inline-input
+    border-top-right-radius: 0  !important
+    border-bottom-right-radius: 0  !important
+
+.inline-submit
+    border-top-left-radius: 0
+    border-bottom-left-radius: 0
+    margin-left: -5px
+
+.short-answer-input
+    width: 15em
 
 </style>

@@ -48,8 +48,53 @@ class StudentClass(Resource):
         return 200
 
 
+class SchoolApi(Resource):
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def get(cls, school_id=None):
+        if school_id is None:
+            results = repository.SchoolRepository.list_schools()
+            return [school.to_dict() for school in results]
+        else:
+            result = repository.SchoolRepository.load_school(school_id=school_id)
+            return result.to_dict()
+
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def post(cls):
+        json = request.json
+        school = repository.SchoolRepository.upsert(
+            school_model=model.School(
+                id=json.get('id'),
+                name=json['name']
+            )
+        )
+        return school.to_dict()
+
+
+class SchoolCourseApi(Resource):
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def post(cls):
+        json = request.json
+        repository.SchoolRepository.link_course(
+            school_id=json['schoolId'],
+            course_id=json['courseId']
+        )
+
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def delete(cls, school_id, course_id):
+        repository.SchoolRepository.unlink_course(
+            school_id=school_id,
+            course_id=course_id
+        )
+
+
 blueprint = Blueprint('organization', __name__)
 
 api = Api(blueprint)
 api.add_resource(Classes, '/classes', '/class/<int:class_id>')
 api.add_resource(StudentClass, '/class/<int:class_id>/student/<int:student_id>')
+api.add_resource(SchoolApi, '/schools', '/school/<int:school_id>')
+api.add_resource(SchoolCourseApi, '/school-course', '/school/<int:school_id>/course/<int:course_id>')

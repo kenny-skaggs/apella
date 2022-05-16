@@ -6,7 +6,11 @@
                 </b-navbar-item>
             </template>
             <template #start>
-                <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "class_management" }).href'>Classes
+                <b-navbar-item v-if='userIsAuthor' :href='$router.resolve({ name: "school_management" }).href'>
+                    Schools
+                </b-navbar-item>
+                <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "class_management" }).href'>
+                    Classes
                 </b-navbar-item>
                 <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "account_management" }).href'>
                     Accounts

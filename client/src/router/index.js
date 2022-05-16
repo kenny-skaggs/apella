@@ -7,6 +7,7 @@ import Lesson from "../views/Lesson/LessonController";
 import Login from "../views/Login";
 import ClassManagement from "../views/ClassManagement";
 import Accounts from "../views/Accounts";
+import Schools from "../views/Schools";
 
 Vue.use(VueRouter);
 
@@ -49,6 +50,11 @@ const routes = [
     name: 'account_management',
     path: '/accounts',
     component: Accounts
+  },
+  {
+    name: 'school_management',
+    path: '/schools',
+    component: Schools
   }
 ];
 
