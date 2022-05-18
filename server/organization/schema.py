@@ -2,8 +2,10 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 
+from core import Role as auth_role
 from curriculum import schema as curriculum_schema, model as curriculum_model
-from general.schema import BaseModel, User
+from general import model as general_model
+from general.schema import BaseModel, User, Role
 from organization import model
 
 
@@ -49,7 +51,7 @@ class School(BaseModel):
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(400))
 
-    def to_model(self, with_courses=False) -> model.School:
+    def to_model(self, with_courses=False, with_teachers=False) -> model.School:
         result = model.School(
             id=self.id,
             name=self.name
@@ -61,6 +63,17 @@ class School(BaseModel):
                     name=course_ref.course.name
                 )
                 for course_ref in self.course_refs
+            ]
+        if with_teachers:
+            result.teachers = [
+                general_model.User(
+                    id=user_ref.user.id,
+                    first_name=user_ref.user.first_name,
+                    last_name=user_ref.user.last_name,
+                    email=user_ref.user.email
+                )
+                for user_ref in self.user_refs
+                if any([role_ref.role.name == str(auth_role.TEACHER) for role_ref in user_ref.user.role_refs])
             ]
 
         return result
@@ -75,3 +88,14 @@ class SchoolCourse(BaseModel):
 
     course_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_schema.Course.id))
     course = relationship(curriculum_schema.Course, backref='school_refs')
+
+
+class SchoolUser(BaseModel):
+    __tablename__ = 'school_user'
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    school_id = sa.Column(sa.Integer, sa.ForeignKey(School.id))
+    school = relationship(School, backref='user_refs')
+
+    user_id = sa.Column(sa.Integer, sa.ForeignKey(User.id))
+    user = relationship(User, backref='school_refs')

@@ -2,15 +2,31 @@ from typing import Sequence
 
 from sqlalchemy.orm import joinedload, Session, Query
 
-from core import needs_session
+from core import needs_session, Role
 from general import schema, model
 
 
 class UserRepository:
     @classmethod
     @needs_session
-    def get_all_users(cls, session: Session):
-        db_users: Sequence[schema.User] = session.query(schema.User).all()
+    def get_all_users(cls, session: Session, role_filter=None, email_like_filter=None):
+        query = session.query(schema.User)
+        if role_filter:
+            query = query.join(
+                schema.UserRole,
+                schema.User.id == schema.UserRole.user_id
+            ).join(
+                schema.Role,
+                schema.Role.id == schema.UserRole.role_id
+            ).filter(
+                schema.Role.name == str(role_filter)
+            )
+        if email_like_filter:
+            query = query.filter(
+                schema.User.email.ilike(f'%{email_like_filter}%')
+            )
+
+        db_users: Sequence[schema.User] = query.all()
         return [user.to_model() for user in db_users]
 
     @classmethod
@@ -41,9 +57,20 @@ class UserRepository:
         db_user = session.query(schema.User).get(user.id)
         if not db_user:
             db_user = schema.User()
+            role_list = session.query(schema.Role).filter(
+                schema.Role.name.in_(user.roles)
+            )
+
+            db_user.role_refs = [
+                schema.UserRole(user=db_user, role=role)
+                for role in role_list
+            ]
             session.add(db_user)
 
         db_user.username = user.username
+        db_user.first_name = user.first_name
+        db_user.last_name = user.last_name
+        db_user.email = user.email
 
         session.flush()
         return db_user.to_model()

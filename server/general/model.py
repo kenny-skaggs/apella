@@ -8,6 +8,9 @@ from core import Serializable
 @dataclass
 class User(Serializable):
     id: int
-    username: str
+    username: str = None
     password: str = None
     roles: List[str] = None
+    first_name: str = None
+    last_name: str = None
+    email: str = None

@@ -12,12 +12,19 @@ class User(BaseModel):
     __tablename__ = 'user'
     id = sa.Column(sa.Integer, primary_key=True)
     username = sa.Column(sa.String(100))
+    email = sa.Column(sa.String(200))
     password = sa.Column(sa.String(400))
+
+    first_name = sa.Column(sa.String(200))
+    last_name = sa.Column(sa.String(200))
 
     def to_model(self, with_password: bool = False, with_roles=False) -> model.User:
         result = model.User(
             id=self.id,
-            username=self.username
+            username=self.username,
+            email=self.email,
+            first_name=self.first_name,
+            last_name=self.last_name
         )
         if with_password:
             result.password = self.password

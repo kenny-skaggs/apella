@@ -85,7 +85,7 @@ class SchoolRepository:
         if result is None:
             return None
         else:
-            return result.to_model(with_courses=True)
+            return result.to_model(with_courses=True, with_teachers=True)
 
     @classmethod
     @needs_session
@@ -122,4 +122,22 @@ class SchoolRepository:
         ).filter(
             schema.SchoolCourse.school_id == school_id,
             schema.SchoolCourse.course_id == course_id
+        ).delete()
+
+    @classmethod
+    @needs_session
+    def link_user(cls, school_id, user_id, session: Session):
+        session.add(schema.SchoolUser(
+            school_id=school_id,
+            user_id=user_id
+        ))
+
+    @classmethod
+    @needs_session
+    def unlink_user(cls, school_id, user_id, session: Session):
+        session.query(
+            schema.SchoolUser
+        ).filter(
+            schema.SchoolUser.school_id == school_id,
+            schema.SchoolUser.user_id == user_id
         ).delete()

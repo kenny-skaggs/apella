@@ -18,3 +18,4 @@ class School(Serializable):
     id: int
     name: str
     courses: List[curriculum_model.Course] = None
+    teachers: List[general_view_models.User] = None

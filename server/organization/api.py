@@ -91,6 +91,25 @@ class SchoolCourseApi(Resource):
         )
 
 
+class SchoolTeacherApi(Resource):
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def post(cls):
+        json = request.json
+        repository.SchoolRepository.link_user(
+            school_id=json['schoolId'],
+            user_id=json['userId']
+        )
+
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def delete(cls, school_id, user_id):
+        repository.SchoolRepository.unlink_user(
+            school_id=school_id,
+            user_id=user_id
+        )
+
+
 blueprint = Blueprint('organization', __name__)
 
 api = Api(blueprint)
@@ -98,3 +117,4 @@ api.add_resource(Classes, '/classes', '/class/<int:class_id>')
 api.add_resource(StudentClass, '/class/<int:class_id>/student/<int:student_id>')
 api.add_resource(SchoolApi, '/schools', '/school/<int:school_id>')
 api.add_resource(SchoolCourseApi, '/school-course', '/school/<int:school_id>/course/<int:course_id>')
+api.add_resource(SchoolTeacherApi, '/school-teacher', '/school/<int:school_id>/teacher/<int:user_id>')

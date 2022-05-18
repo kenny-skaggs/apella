@@ -1,8 +1,8 @@
 <template>
     <b-modal v-model='showModal'>
         Select a course to make available to {{ schoolName }}
-        <div class="course-list">
-            <div class="course" v-for="course in sortedCourses" :key='course.id'
+        <div class="selection-container">
+            <div class="selectable-row" v-for='course in sortedCourses' :key='course.id'
                 @click='courseSelected(course)'
             >
                 {{ course.name }}
@@ -32,24 +32,3 @@ export default {
     props: ['courses', 'showModal', 'schoolName']
 }
 </script>
-
-<style lang="sass" scoped>
-@import "~bulmaswatch/darkly/variables"
-
-.course-list
-    max-height: 70%
-    overflow: scroll
-    margin: 2em
-
-.course
-    display: flex
-    align-items: center
-    padding: 1em
-    min-height: 4em
-    border-bottom: 1px white solid
-
-    &:hover
-        cursor: pointer
-        background: $grey-dark
-
-</style>
