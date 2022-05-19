@@ -55,14 +55,22 @@ class CourseRepository:
 
         return [course.to_model() for course in db_course_list]
 
-    # @classmethod
-    # @needs_session
-    # def courses_enrolled_for_user(cls, user_id, session):
-    #     db_course_list = session.query(
-    #         schema.Course
-    #     ).join(
-    #         organization.schema.
-    #     )
+    @classmethod
+    @needs_session
+    def courses_enrolled_for_user(cls, user_id, session):
+        db_course_list = session.query(
+            schema.Course
+        ).join(
+            organization.schema.ClassCourse
+        ).join(
+            organization.schema.Class
+        ).join(
+            organization.schema.StudentClass
+        ).filter(
+            organization.schema.StudentClass.user_id == user_id
+        )
+
+        return [course.to_model() for course in db_course_list]
 
 
 class UnitRepository:

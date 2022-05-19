@@ -32,7 +32,7 @@ class Courses(Resource):
             elif 'teacher' in user.rolenames:
                 course_list = repository.CourseRepository.courses_taught_by_user(user_id=user.identity)
             else:
-                course_list = RenderTarget.RESPONDING
+                course_list = repository.CourseRepository.courses_enrolled_for_user(user_id=user.identity)
 
             return [course.to_dict() for course in course_list]
         else:
