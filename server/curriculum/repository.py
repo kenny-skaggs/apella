@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from core import needs_session
 from curriculum import schema, model
+import organization
 
 
 class CourseRepository:
@@ -36,6 +37,32 @@ class CourseRepository:
 
         session.flush()
         return db_course.id
+
+    @classmethod
+    @needs_session
+    def courses_taught_by_user(cls, user_id, session):
+        db_course_list = session.query(
+            schema.Course
+        ).join(
+            organization.schema.SchoolCourse
+        ).join(
+            organization.schema.School
+        ).join(
+            organization.schema.SchoolUser
+        ).filter(
+            organization.schema.SchoolUser.user_id == user_id
+        ).all()
+
+        return [course.to_model() for course in db_course_list]
+
+    # @classmethod
+    # @needs_session
+    # def courses_enrolled_for_user(cls, user_id, session):
+    #     db_course_list = session.query(
+    #         schema.Course
+    #     ).join(
+    #         organization.schema.
+    #     )
 
 
 class UnitRepository:

@@ -11,6 +11,7 @@ class Class(Serializable):
     id: int
     name: str
     students: List[general_view_models.User] = field(default_factory=list)
+    course_list: List[curriculum_model.Course] = None
 
 
 @dataclass

@@ -26,7 +26,15 @@ class Courses(Resource):
     @auth.requires_login
     def get(cls, course_id=None):
         if course_id is None:
-            return [course.to_dict() for course in repository.CourseRepository.get_all()]
+            user = auth.get_current_user()
+            if 'author' in user.rolenames:
+                course_list = repository.CourseRepository.get_all()
+            elif 'teacher' in user.rolenames:
+                course_list = repository.CourseRepository.courses_taught_by_user(user_id=user.identity)
+            else:
+                course_list = RenderTarget.RESPONDING
+
+            return [course.to_dict() for course in course_list]
         else:
             return repository.CourseRepository.get_by_id(course_id).to_dict()
 

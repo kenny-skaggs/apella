@@ -4,6 +4,7 @@ from flask_restful import Api, Resource
 
 import auth
 from core import Role
+import curriculum
 from organization import service, repository, model
 
 
@@ -12,11 +13,12 @@ class Classes(Resource):
     @auth.requires_roles(Role.TEACHER)
     def get(cls, class_id=None):
         if class_id is None:
+            class_list = repository.ClassRepository.get_classes_taught_by_user(
+                user_id=auth.get_current_user().identity
+            )
             return [
                 apella_class.to_dict()
-                for apella_class in repository.ClassRepository.get_classes_taught_by_user(
-                    user_id=auth.get_current_user().identity
-                )
+                for apella_class in class_list
             ]
         else:
             apella_class = repository.ClassRepository.get_class(class_id)
@@ -26,10 +28,17 @@ class Classes(Resource):
     @auth.requires_roles(Role.TEACHER)
     def post(cls, class_id=None):
         json = request.json
+
+        course_list = [
+            curriculum.model.Course(id=course['id'])
+            for course in json['course_list']
+        ]
         apella_class = model.Class(
             id=class_id,
-            name=json['name']
+            name=json['name'],
+            course_list=course_list
         )
+
         apella_class = repository.ClassRepository.upsert(
             apella_class=apella_class,
             teacher_id=auth.get_current_user().identity

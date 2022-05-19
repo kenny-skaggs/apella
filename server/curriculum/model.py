@@ -8,7 +8,7 @@ from core import Serializable
 @dataclass
 class Course(Serializable):
     id: int
-    name: str
+    name: str = None
     units: List['Unit'] = None
 
 

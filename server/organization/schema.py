@@ -14,14 +14,30 @@ class Class(BaseModel):
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
 
-    def to_model(self, with_students=False) -> model.Class:
+    def to_model(self, with_students=False, with_courses=False) -> model.Class:
         result = model.Class(
             id=self.id,
             name=self.name
         )
         if with_students:
             result.students = [student_ref.user.to_model() for student_ref in self.student_user_refs]
+        if with_courses:
+            result.course_list = [
+                course_ref.course.to_model()
+                for course_ref in self.course_refs
+            ]
         return result
+
+
+class ClassCourse(BaseModel):
+    __tablename__ = 'class_course'
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    class_id = sa.Column(sa.Integer, sa.ForeignKey(Class.id))
+    cls = relationship(Class, backref='course_refs')
+
+    course_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_schema.Course.id))
+    course = relationship(curriculum_schema.Course, backref='class_refs')
 
 
 class TeacherClass(BaseModel):

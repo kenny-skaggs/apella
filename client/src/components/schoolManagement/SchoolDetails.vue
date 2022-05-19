@@ -123,19 +123,4 @@ export default {
 .detail-item
     width: 25em
 
-.selection-container
-    max-height: 70%
-    overflow: scroll
-    margin: 2em
-
-.selectable-row
-    display: flex
-    align-items: center
-    padding: 1em
-    min-height: 4em
-    border-bottom: 1px white solid
-
-    &:hover:not(.no-hover)
-        cursor: pointer
-        background: $grey-dark
 </style>

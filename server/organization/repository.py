@@ -21,7 +21,7 @@ class ClassRepository:
             schema.TeacherClass.user_id == user_id
         ).all()
         return [
-            db_class.to_model(with_students=True)
+            db_class.to_model(with_students=True, with_courses=True)
             for db_class in db_classes
         ]
 
@@ -40,6 +40,11 @@ class ClassRepository:
             )
 
         db_class.name = apella_class.name
+
+        db_class.course_refs = [
+            schema.ClassCourse(course_id=course.id)
+            for course in apella_class.course_list
+        ]
 
         session.flush()
         return db_class.to_model()

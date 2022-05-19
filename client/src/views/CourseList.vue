@@ -72,7 +72,7 @@ export default {
     mounted() {
         this.$http.get('/curriculum/courses').then((response) => {
             this.courses = response.data;
-        })
+        });
     },
     beforeUpdate() {
         this.$store.commit('clearCurrentCourse');
