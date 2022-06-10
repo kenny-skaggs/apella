@@ -62,6 +62,18 @@ class StudentClass(BaseModel):
     cls = relationship(Class, backref='student_user_refs')
 
 
+class LessonClass(BaseModel):
+    __tablename__ = 'lesson_class'
+    id = sa.Column(sa.Integer, primary_key=True)
+    is_visible = sa.Column(sa.Integer, nullable=False)
+
+    lesson_id = sa.Column(sa.Integer, sa.ForeignKey(curriculum_schema.Lesson.id))
+    lesson = relationship(curriculum_schema.Lesson, backref='class_refs')
+
+    class_id = sa.Column(sa.Integer, sa.ForeignKey(Class.id))
+    cls = relationship(Class, backref='lesson_refs')
+
+
 class School(BaseModel):
     __tablename__ = 'school'
     id = sa.Column(sa.Integer, primary_key=True)

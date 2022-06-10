@@ -4,14 +4,10 @@
         <em v-else class="save-notification">Saved</em>
 
         <b-field label="Name">
-            <b-input v-model='selectedPage.name'></b-input>
+            <b-input v-model='selectedPage.name' @input='queueSave'></b-input>
         </b-field>
         <HtmlEditor v-model='lessonHtml' :page-id='selectedPage.id' :allowQuestionInsert='true'
                     @questionClicked='questionClicked'/>
-        <b-button @click='saveHtmlToServer'>
-            Save to Server
-        </b-button>
-        <b-button @click='modifyClicked'>Modify</b-button>
         <b-modal v-model='showChoiceModal'>
             <div>Edit Choices</div>
             <div class="rich-option-editor" v-for='option in options' :key='option.id'>
@@ -65,9 +61,6 @@ export default {
         removeOption(option) {
             this.options = this.options.filter((o) => o.id !== option.id);
         },
-        modifyClicked() {
-            this.showChoiceModal = true;
-        },
         submitChoices() {
             const $element = $(this.editingQuestion);
             const trumbowyg_core = $element.closest('.trumbowyg-editor').data('trumbowyg');
@@ -92,11 +85,16 @@ export default {
 
             this.queuedSaveToServer = setTimeout(() => {
                 this.queuedSaveToServer = undefined;
-                this.saveHtmlToServer();
-            }, 1500);
+                this.savePageToServer();
+            }, 300);
         },
-        saveHtmlToServer() {
+        savePageToServer() {
             this.$http.post('/curriculum/pages', this.selectedPage).then((response) => {
+                if (this.selectedPage.id === undefined) {
+                    this.selectedPage.id = response.data.page_id;
+                    this.$emit('newId', this.selectedPage.id);
+                }
+
                 // TODO: there's got to be a way to get this encapsulated in the HtmlEditor (maybe a prop for the map?)
                 const resolution_map = response.data.id_resolution;
                 $('.wysiwyg_question[temp-id]').each((i, node) => {
@@ -149,16 +147,17 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/_variables.scss"
+@import "~bulmaswatch/flatly/_variables.scss"
+@import "@/my-colors.sass"
 
 .wysiwyg_question
-    border: 1px solid $grey-dark
+    border: 1px solid $low-contrast
     border-radius: 5px
     padding: 5px
 
     &:hover
         cursor: pointer
-        background: $grey-dark
+        background: $low-contrast
 
 .trumbowyg-modal
     color: #333

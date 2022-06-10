@@ -1,5 +1,6 @@
 <template>
     <div class="curriculum-tile">
+        <div v-if='headerColor' :style='{ "background-color": headerColor}' class='header'></div>
         <div class="edit-panel" v-if='editable'>
             <div @click.stop=''>
                 <b-dropdown aria-role="list">
@@ -21,6 +22,7 @@
                     <a :href='resource.link'>{{ resource.name }}</a>
                 </div>
             </template>
+            <slot name="extras" />
         </div>
     </div>
 </template>
@@ -33,20 +35,24 @@ export default {
             this.$emit('edit');
         }
     },
-    props: ['editable', 'orderable', 'item']
+    props: ['editable', 'orderable', 'item', 'headerColor']
 }
 </script>
 
 <style lang="sass">
-@import "../../../node_modules/bulmaswatch/darkly/variables"
+@import "../../../node_modules/bulmaswatch/flatly/variables"
 .curriculum-tile
     position: relative
 
     width: 15em
-    height: 8em
-    background-color: $grey
+    min-height: 8em
     margin: 2em
     border-radius: 1em
+
+    padding-top: 4em
+    padding-bottom: 2em
+
+    border: 1px solid $grey
 
     display: flex
     flex-direction: column
@@ -57,6 +63,15 @@ export default {
         background-color: $grey-lighter
         cursor: pointer
         color: #333
+
+    .header
+        position: absolute
+        left: 0
+        right: 0
+        top: 0
+        height: 3em
+        border-top-left-radius: 1em
+        border-top-right-radius: 1em
 
 .edit-panel
     position: absolute

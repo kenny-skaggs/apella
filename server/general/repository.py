@@ -1,9 +1,10 @@
 from typing import Sequence
 
-from sqlalchemy.orm import joinedload, Session, Query
+from sqlalchemy.orm import aliased, joinedload, Session, Query
 
 from core import needs_session, Role
 from general import schema, model
+from organization import schema as organization_schema
 
 
 class UserRepository:
@@ -31,10 +32,47 @@ class UserRepository:
 
     @classmethod
     @needs_session
+    def get_students_in_school_with_teacher(cls, teacher_user_id, session: Session):
+        student_school = aliased(organization_schema.SchoolUser)
+        teacher_school = aliased(organization_schema.SchoolUser)
+        query = session.query(
+            schema.User
+        ).join(
+            schema.UserRole
+        ).join(
+            schema.Role
+        ).join(
+            student_school,
+            student_school.user_id == schema.User.id
+        ).join(
+            teacher_school,
+            teacher_school.school_id == student_school.school_id
+        ).filter(
+            teacher_school.user_id == teacher_user_id,
+            schema.Role.name == 'student'
+        )
+
+        db_users: Sequence[schema.User] = query.all()
+        return [user.to_model() for user in db_users]
+
+    @classmethod
+    @needs_session
     def get_with_username(cls, username: str, session: Session, populate_roles=False):
         user_query = cls._build_user_query(session=session, with_roles=populate_roles)
         db_user: schema.User = user_query.filter(
             schema.User.username == username
+        ).one_or_none()
+        if db_user:
+            return db_user.to_model(with_password=True, with_roles=True)
+        else:
+            return None
+
+    @classmethod
+    @needs_session
+    def get_with_email(cls, email: str, session: Session, populate_roles=False):
+        user_query = cls._build_user_query(session=session, with_roles=populate_roles)
+        db_user: schema.User = user_query.filter(
+            schema.User.email == email
         ).one_or_none()
         if db_user:
             return db_user.to_model(with_password=True, with_roles=True)

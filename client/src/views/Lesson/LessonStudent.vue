@@ -13,7 +13,8 @@ export default {
                 this.$socket.client.emit('response_provided', {
                     questionId: questionId,
                     answer: answer,
-                    submitted: submitted
+                    submitted: submitted,
+                    auth: this.$store.state.authToken
                 });
             });
         },
@@ -83,7 +84,7 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
 
 .student-view
     .apella-question

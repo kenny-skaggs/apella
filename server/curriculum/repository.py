@@ -179,6 +179,13 @@ class PageRepository:
         session.flush()
         return db_page.to_model()
 
+    @classmethod
+    @needs_session
+    def delete(cls, page_id, session):
+        session.query(schema.Page).filter(
+            schema.Page.id == page_id
+        ).delete()
+
 
 class QuestionRepository:
     @classmethod

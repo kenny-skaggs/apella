@@ -81,11 +81,12 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
+@import "@/my-colors.sass"
 
 .teacher-view
     .apella-question
-        background: $grey-dark
+        background: $low-contrast
 
         &:hover
             background: $grey

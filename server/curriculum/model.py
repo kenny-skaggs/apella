@@ -36,6 +36,7 @@ class Page(Serializable):
     name: str
     lesson_id: int = None
     html: str = ''
+    position: int = None
 
 
 class QuestionType(Enum):

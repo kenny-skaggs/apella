@@ -3,7 +3,10 @@
         <div class="column is-2">
             <b-button @click='showSchoolModal = true'>Add School</b-button>
             <div class="school-navigator">
-                <div v-for='school in sortedSchools' :key='school.id' class="school" @click='schoolSelected(school)'>
+                <div v-for='school in sortedSchools' :key='school.id'
+                     :class="{'school': true, 'selected': selectedSchool !== undefined && selectedSchool.id === school.id}"
+                     @click='schoolSelected(school)'
+                >
                     {{ school.name }}
                 </div>
             </div>
@@ -31,10 +34,11 @@ export default {
     },
     methods: {
         submitSchoolModal(schoolData) {
+            this.$store.commit('setIsLoading', true);
             this.$http.post('/organization/schools', schoolData).then((response) => {
                 this.schools.push(response.data);
                 this.showSchoolModal = false;
-            });
+            }).finally(() => this.$store.commit('setIsLoading', false));
         },
         cancelSchoolModal() {
             this.showSchoolModal = false;
@@ -49,32 +53,37 @@ export default {
         }
     },
     mounted() {
+        this.$store.commit('setIsLoading', true)
         this.$http.get('/organization/schools').then((response) => {
             this.schools = response.data;
-        });
+        }).finally(() => this.$store.commit('setIsLoading', false));
     },
     components: {SchoolModal, SchoolDetails}
 }
 </script>
 
 <style lang="sass" scoped>
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
+@import "@/my-colors.sass"
 
 .school-navigator
-    border-right: 1px white solid
+    border-right: 1px $low-contrast solid
+
+    max-height: 60vh
+    overflow: scroll
 
 .school
     display: flex
     align-items: center
     padding: 1em
     min-height: 4em
-    border-bottom: 1px white solid
+    border-bottom: 1px $low-contrast solid
 
     &:hover
         cursor: pointer
-        background: $grey-dark
+        background: $low-contrast
 
     &.selected
-        background: $grey
+        background: $grey-lighter
 
 </style>

@@ -37,10 +37,11 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
+@import "@/my-colors.sass"
 
 .pageNavigator
-  border-right: 1px white solid
+  border-right: 1px $low-contrast solid
 
 .pageItem
   display: flex
@@ -48,11 +49,11 @@ export default {
   justify-content: space-between
 
   min-height: 4em
-  border-bottom: 1px white solid
+  border-bottom: 1px $low-contrast solid
 
   &:hover
     cursor: pointer
-    background: $grey-dark
+    background: $low-contrast
 
   &.selected
     background: $grey

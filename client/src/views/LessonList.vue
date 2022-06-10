@@ -5,6 +5,7 @@
         >
             <Tile v-for='lesson in lessons'
                   :key='lesson.id'
+                  header-color="#EC1C2d"
                   class="lesson-tile"
                   :editable='userIsAuthor'
                   orderable='true'
@@ -14,6 +15,13 @@
             >
                 {{ lesson.name }}
                 <DisplayResourceList v-if='lesson.resources.length > 0' :resources='lesson.resources' />
+                <template v-if='userIsTeacher' v-slot:extras>
+                    <div>
+                        <b-button size="is-small" @click.stop='toggleLessonVisibility(lesson)'>
+                            {{ isLessonVisible(lesson) ? 'Hide' : 'Show' }} lesson
+                        </b-button>
+                    </div>
+                </template>
             </Tile>
             <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
                 <div style="text-align: center">
@@ -41,12 +49,12 @@ import Tile from '../components/curriculum/Tile';
 import AuthCheckMixin from "../mixins/AuthCheckMixin";
 import EditResourceList from "../components/curriculum/EditResourceList";
 import DisplayResourceList from "../components/curriculum/DisplayResourceList";
+import display from "../utils/display";
 
 export default {
     name: 'LessonList',
     methods: {
         reorderLessons() {
-            console.log('bob');
             const ordered_lesson_ids = this.lessons.map((lesson) => lesson.id);
             this.$http.post(`/curriculum/unit/order/${this.unitId}`, {lessonIds: ordered_lesson_ids});
         },
@@ -78,14 +86,27 @@ export default {
         itemSelected(item) {
             this.$store.commit('setActiveLesson', item);
             this.$router.push({name: 'lesson_detail', params: {lessonId: item.id}});
+        },
+        toggleLessonVisibility(lesson) {
+            const index = this.visibleLessonIds.findIndex((visible_id) => visible_id === lesson.id);
+            if (index >= 0) {
+                this.visibleLessonIds.splice(index, 1);
+            } else {
+                this.visibleLessonIds.push(lesson.id);
+            }
+        },
+        isLessonVisible({ id }) {
+            const index = this.visibleLessonIds.findIndex((visible_id) => visible_id === id);
+            return index >= 0;
         }
     },
     data() {
         return {
             showEditModal: false,
-            itemTemplate: {id: undefined, name: '', unit_id: this.unitId},
+            itemTemplate: {id: undefined, name: '', unit_id: this.unitId, resources: []},
             currentEditing: {id: undefined, name: '', resources: []},
-            lessons: []
+            lessons: [],
+            visibleLessonIds: []
         }
     },
     created() {

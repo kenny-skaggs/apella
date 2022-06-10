@@ -78,6 +78,29 @@ class StudentClassRepository:
         # todo: there should be a way to make sure there aren't a bunch of duplicates
 
 
+class LessonClassRepository:
+    @classmethod
+    @needs_session
+    def set_lesson_visibility(cls, lesson_id, class_id, visibility, session: Session):
+        lesson_class_query = session.query(schema.LessonClass).filter(
+            schema.LessonClass.lesson_id == lesson_id,
+            schema.LessonClass.class_id == class_id
+        )
+        if lesson_class_query.exists():
+            print('updating what was found')
+            lesson_class_query.update({
+                schema.LessonClass.is_visible: visibility
+            })
+        else:
+            print('creating new')
+            session.add(schema.LessonClass(
+                lesson_id=lesson_id,
+                class_id=class_id,
+                is_visible=visibility
+            ))
+
+
+
 class SchoolRepository:
     @classmethod
     @needs_session

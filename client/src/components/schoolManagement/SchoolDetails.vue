@@ -68,9 +68,10 @@ export default {
     },
     methods: {
         loadSchool() {
+            this.$store.commit('setIsLoading', true);
             this.$http.get(`/organization/school/${this.schoolId}`).then((response) => {
                 this.school = response.data;
-            });
+            }).finally(() => this.$store.commit('setIsLoading', false));
         },
         loadAvailableCourses() {
             this.$http.get('/curriculum/courses').then((response) => {
@@ -115,9 +116,13 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
 
-.school-details .panel-block:hover
+.school-details
+    max-height: 70vh
+    overflow: scroll
+
+    .panel-block:hover
     color: inherit
 
 .detail-item

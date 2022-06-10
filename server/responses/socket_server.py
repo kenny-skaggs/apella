@@ -10,6 +10,7 @@ def initialize_server(app: Flask) -> SocketIO:
     server = SocketIO(app, cors_allowed_origins='*')
 
     @server.on('response_provided')
+    @auth.load_token_from_data
     @auth.requires_login
     def on_response(response_data):
         user = auth.get_current_user()

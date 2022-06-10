@@ -57,6 +57,19 @@ class StudentClass(Resource):
         return 200
 
 
+class LessonClass(Resource):
+    @classmethod
+    @auth.requires_roles(Role.TEACHER)
+    def post(cls):
+        json = request.json
+        repository.LessonClassRepository.set_lesson_visibility(
+            lesson_id=json['lessonId'],
+            class_id=json['classId'],
+            visibility=json['visibility']
+        )
+        return 200
+
+
 class SchoolApi(Resource):
     @classmethod
     @auth.requires_roles(Role.AUTHOR)

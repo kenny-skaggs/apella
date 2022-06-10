@@ -6,7 +6,11 @@
                             @deletePage='deletePage' :editable='userIsAuthor' :lesson-id='lessonId'/>
         </div>
         <div class="column" v-if='selectedPage !== undefined'>
-            <LessonAuthor v-if='userIsAuthor' :selected-page='selectedPage' v-model='selectedPage.html'/>
+            <LessonAuthor v-if='userIsAuthor'
+                          :selected-page='selectedPage'
+                          v-model='selectedPage.html'
+                          @newId='(id) => this.selectedPageId = id'
+            />
             <LessonTeacher v-else-if='userIsTeacher' :lesson-html='selectedPage.html' :page-id='selectedPageId'/>
             <LessonStudent v-else :lesson-html='selectedPage.html'/>
         </div>
@@ -36,7 +40,9 @@ export default {
             })
         },
         deletePage(pageId) {
-            display.removeObject(this.pages, {id: pageId}, 'id');
+            this.$http.delete(`/curriculum/page/${pageId}`).then(() => {
+                display.removeObject(this.pages, {id: pageId}, 'id');
+            });
         }
     },
     data() {
@@ -73,7 +79,7 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
 
 .apella-question
     border-radius: 5px

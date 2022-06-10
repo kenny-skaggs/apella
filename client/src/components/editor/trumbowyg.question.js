@@ -18,11 +18,11 @@ const buildPlugin = function ($) {
             display: 'Short Answer',
             template: '<span>A small field to enter text will appear here</span>'
         },
-        {
-            id: 'question_inline_dropdown',
-            display: 'Inline Dropdown',
-            template: '<span>A dropdown field to select an option will appear here</span>'
-        },
+        // {
+        //     id: 'question_inline_dropdown',
+        //     display: 'Inline Dropdown',
+        //     template: '<span options="[]">A dropdown field to select an option will appear here</span>'
+        // },
         {
             id: 'question_rubric',
             display: 'Project Rubric',

@@ -2,6 +2,7 @@
     <div>
         <div class="tile-container">
             <Tile v-for='course in courses' :key='course.id'
+                  header-color="#fbc212"
                   :editable='userIsAuthor' @edit='editCourse(course)'
                   @click.native='courseSelected(course)'
             >

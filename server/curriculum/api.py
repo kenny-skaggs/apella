@@ -2,11 +2,11 @@ from datetime import datetime
 import os
 
 from flask import Blueprint, redirect, request, url_for
-from flask_restful import Api, Resource
+from flask_restful import Resource
 from werkzeug.utils import secure_filename
 
 import auth
-from core import Role
+from core import Role, FlaskRestfulApi
 from curriculum import service, model, repository
 from curriculum.html_processing import LessonRenderer, RenderTarget
 
@@ -137,6 +137,12 @@ class Pages(Resource):
             'id_resolution': id_resolution
         }, 200
 
+    @classmethod
+    @auth.requires_roles(Role.AUTHOR)
+    def delete(cls, page_id):
+        repository.PageRepository.delete(page_id)
+        return 200
+
 
 class FileUpload(Resource):
     @classmethod
@@ -177,7 +183,7 @@ class FileUpload(Resource):
 
 blueprint = Blueprint('curriculum', __name__)
 
-api = Api(blueprint)
+api = FlaskRestfulApi(blueprint)
 api.add_resource(Courses, '/courses', '/course/<int:course_id>')
 
 api.add_resource(Units, '/units', '/unit/<int:unit_id>')
@@ -186,6 +192,6 @@ api.add_resource(LessonOrder, '/unit/order/<int:unit_id>')
 api.add_resource(Lessons, '/lessons', '/lesson/<int:lesson_id>')
 api.add_resource(PageOrder, '/lesson/order/<int:lesson_id>')
 
-api.add_resource(Pages, '/pages')
+api.add_resource(Pages, '/pages', '/page/<int:page_id>')
 
 api.add_resource(FileUpload, '/file-upload')

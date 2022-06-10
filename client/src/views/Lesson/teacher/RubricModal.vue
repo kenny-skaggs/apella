@@ -121,7 +121,8 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
+@import "@/my-colors.sass"
 
 .rubric-item-row
     border-bottom: 1px solid $grey
@@ -162,7 +163,7 @@ export default {
             padding: 1rem
 
             &:hover:not(.disabled):not(.selected)
-                background: $grey-dark
+                background: $low-contrast
                 cursor: pointer
 
             &.disabled

@@ -49,6 +49,7 @@ class Unit(BaseModel):
     __tablename__ = 'unit'
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
+    published = sa.Column(sa.Boolean, default=False)
 
     lessons: List['Lesson'] = relationship('Lesson', back_populates='unit',
                            order_by='Lesson.position', collection_class=ordering_list('position'))
@@ -99,9 +100,8 @@ class Page(BaseModel):
     __tablename__ = 'page'
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(200))
-    html = sa.Column(sa.String(2000))
+    html = sa.Column(sa.String(8000))
     position = sa.Column(sa.Integer)
-    # TODO: order within a lesson
 
     lesson_id = sa.Column(sa.Integer, sa.ForeignKey(Lesson.id))
     lesson = relationship(Lesson, back_populates='pages')
@@ -110,7 +110,8 @@ class Page(BaseModel):
         result = model.Page(
             id=self.id,
             name=self.name,
-            html=self.html
+            html=self.html,
+            position=self.position
         )
         return result
 

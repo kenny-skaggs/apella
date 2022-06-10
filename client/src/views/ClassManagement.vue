@@ -122,7 +122,7 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-@import "~bulmaswatch/darkly/variables"
+@import "~bulmaswatch/flatly/variables"
 
 .student
     margin: 1em

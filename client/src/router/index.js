@@ -5,6 +5,7 @@ import UnitList from "../views/UnitList";
 import LessonList from "../views/LessonList";
 import Lesson from "../views/Lesson/LessonController";
 import Login from "../views/Login";
+import GoogleLoginCallback from "../views/GoogleLoginCallback";
 import ClassManagement from "../views/ClassManagement";
 import Accounts from "../views/Accounts";
 import Schools from "../views/Schools";

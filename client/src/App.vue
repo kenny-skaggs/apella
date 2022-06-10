@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <b-navbar>
+        <b-navbar class="apella-navbar">
             <template #brand>
                 <b-navbar-item :href='$router.resolve({ name: "dashboard" }).href'><strong>Apella</strong>
                 </b-navbar-item>
@@ -14,6 +14,8 @@
                 </b-navbar-item>
                 <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "account_management" }).href'>
                     Accounts
+                </b-navbar-item>
+                <b-navbar-item class="nav-bar-logo">
                 </b-navbar-item>
             </template>
             <template #end v-if='isLoggedIn'>
@@ -142,10 +144,31 @@ export default {
 </script>
 
 <style lang="sass">
-@import "~bulmaswatch/darkly/bulmaswatch.scss"
+@import "~bulmaswatch/flatly/bulmaswatch.scss"
+@import "@/my-colors.sass"
 
-#app .loading-overlay .loading-background
-    background: rgba($background, 0.5)
+
+#app
+    font-size: 18px
+
+    .apella-navbar
+        border-radius: 0
+        background-color: #082539
+
+    .nav-bar-logo
+        position: absolute
+        top: 5px
+        left: 30%
+        right: 30%
+        bottom: 5px
+
+        background-image: url('http://localhost:5000/static/images/republic-logo-blue.jpeg')
+        background-repeat: no-repeat
+        background-position: center
+        background-size: auto 90%
+
+    .loading-overlay .loading-background
+        background: rgba($background, 0.5)
 
 .flex-row
     display: flex
@@ -162,10 +185,17 @@ export default {
     align-items: center
     padding: 1em
     min-height: 4em
-    border-bottom: 1px white solid
+    border-bottom: 1px $low-contrast solid
 
     &:hover:not(.no-hover)
         cursor: pointer
-        background: $grey-dark
+        background: $low-contrast
+
+.modal
+    color: white !important
+
+    label.label
+        color: white
+
 
 </style>

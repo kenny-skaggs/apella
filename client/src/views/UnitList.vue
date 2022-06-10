@@ -5,6 +5,7 @@
         >
             <Tile v-for='unit in units'
                   :key='unit.id'
+                  header-color="#1298DE"
                   class="unit-tile"
                   :editable='userIsAuthor'
                   orderable='true'

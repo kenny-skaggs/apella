@@ -1,15 +1,30 @@
+import os
 from enum import Enum, auto
 import functools
 
 # Load environment configuration
 from dotenv import load_dotenv
-load_dotenv()
-
+load_dotenv(os.environ.get('ENV_FILE', '.env'))
+from flask_restful import Api
+from sentry_sdk.integrations.flask import FlaskIntegration
 from tool_kit import external
+
+if not external.Environment.is_dev():
+    external.ErrorTracking.initialize(
+        integrations=FlaskIntegration()  # TODO: fix the list param in toolkit
+    )
+    print('error tracking initialized')
 
 
 # Configure database connection
-db_connection = external.DatabaseConnection()
+
+db_connection = None
+if os.environ.get('IS_DEV', False):
+    print('running as dev')
+    db_connection = external.DatabaseConnection()
+else:
+    print('running as prod')
+    db_connection = external.DatabaseConnection(db_url=os.environ['PROD_DB_URL'])
 
 
 def needs_session(func):
@@ -47,3 +62,8 @@ class Role(Enum):
 class Permission(Enum):
     VIEW = 1
     EDIT = 2
+
+
+class FlaskRestfulApi(Api):
+    def handle_error(self, e):
+        raise e
