@@ -14,7 +14,7 @@
                   :item='unit'
             >
                 {{ unit.name }}
-                <DisplayResourceList v-if='unit.resources.length > 0' :resources='unit.resources' />
+                <DisplayResourceList v-if='unit.resources.length > 0 && shouldDisplayResources' :resources='unit.resources' />
             </Tile>
             <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
                 <div style="text-align: center">
@@ -77,6 +77,11 @@ export default {
         },
         reorderUnits() {
 
+        }
+    },
+    computed: {
+        shouldDisplayResources() {
+            return (this.userIsAuthor || this.userIsTeacher) && !this.$store.state.viewAsPdCourse;
         }
     },
     data() {

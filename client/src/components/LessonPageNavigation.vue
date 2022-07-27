@@ -2,7 +2,7 @@
   <draggable :list='pages' class="pageNavigator" handle=".move-control" @change='pageOrderChanged' :animation='100'>
     <div class="pageItem" :class='{selected: page.id === selectedPageId}'
          v-for='page in pages' :key='page.id' @click='pageClicked(page)'>
-      <div class="editing-control move-control" v-if='userIsAuthor'>
+      <div class="editing-control move-control" v-if='editable'>
         <b-icon pack="fas" icon="grip-lines"></b-icon>
       </div>
       <span class="name">{{ page.name }}</span>

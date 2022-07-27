@@ -18,10 +18,19 @@ if not external.Environment.is_dev():
 
 # Configure database connection
 
+connect_to_prod_from_local = False
+
 db_connection = None
-if os.environ.get('IS_DEV', False):
+if os.environ.get('IS_DEV', False) and not connect_to_prod_from_local:
     print('running as dev')
     db_connection = external.DatabaseConnection()
+elif connect_to_prod_from_local:
+    print('running against prod')
+    db_connection = external.DatabaseConnection(
+        username=os.environ['PROD_DB_USERNAME'],
+        password=os.environ['PROD_DB_PASSWORD'],
+        port=os.environ['PROD_DB_PORT']
+    )
 else:
     print('running as prod')
     db_connection = external.DatabaseConnection(db_url=os.environ['PROD_DB_URL'])

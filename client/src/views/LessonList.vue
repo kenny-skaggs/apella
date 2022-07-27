@@ -7,15 +7,15 @@
                   :key='lesson.id'
                   header-color="#EC1C2d"
                   class="lesson-tile"
-                  :editable='userIsAuthor'
+                  :editable='shouldViewAuthorControls'
                   orderable='true'
                   @edit='editItemClicked(lesson)'
                   @click.native='itemSelected(lesson)'
                   :item='lesson'
             >
                 {{ lesson.name }}
-                <DisplayResourceList v-if='lesson.resources.length > 0' :resources='lesson.resources' />
-                <template v-if='userIsTeacher' v-slot:extras>
+                <DisplayResourceList v-if='lesson.resources.length > 0 && shouldDisplayResources' :resources='lesson.resources' />
+                <template v-if='userIsTeacher && shouldDisplayResources' v-slot:extras>
                     <div>
                         <b-button size="is-small" @click.stop='toggleLessonVisibility(lesson)'>
                             {{ isLessonVisible(lesson) ? 'Hide' : 'Show' }} lesson
@@ -23,7 +23,7 @@
                     </div>
                 </template>
             </Tile>
-            <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='userIsAuthor'>
+            <Tile slot="footer" key="footer" @click.native='newItemClicked' v-if='shouldViewAuthorControls'>
                 <div style="text-align: center">
                     <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
                 </div>
@@ -98,6 +98,11 @@ export default {
         isLessonVisible({ id }) {
             const index = this.visibleLessonIds.findIndex((visible_id) => visible_id === id);
             return index >= 0;
+        }
+    },
+    computed: {
+        shouldDisplayResources() {
+            return (this.userIsAuthor || this.userIsTeacher) && !this.$store.state.viewAsPdCourse;
         }
     },
     data() {

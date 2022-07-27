@@ -25,6 +25,7 @@ class Courses(Resource):
     @classmethod
     @auth.requires_login
     def get(cls, course_id=None):
+        print(auth.get_current_user().identity)
         if course_id is None:
             user = auth.get_current_user()
             if 'author' in user.rolenames:
@@ -48,6 +49,17 @@ class Courses(Resource):
         )
         course_id = repository.CourseRepository.upsert(course_data)
         return course_id, 200
+
+
+class PdCourses(Resource):
+    @classmethod
+    @auth.requires_login
+    @auth.allowed_roles(Role.AUTHOR, Role.TEACHER)
+    def get(cls):
+        user = auth.get_current_user()
+        course_list = repository.CourseRepository.courses_enrolled_for_user(user_id=user.identity)
+
+        return [course.to_dict() for course in course_list]
 
 
 class Units(Resource):
@@ -86,9 +98,15 @@ class Lessons(Resource):
 
         user = auth.get_current_user()
         if 'author' in user.rolenames:
-            render_target = RenderTarget.AUTHORING
+            if request.args.get('teacher_view'):
+                render_target = RenderTarget.TEACHING
+            else:
+                render_target = RenderTarget.AUTHORING
         elif 'teacher' in user.rolenames:
-            render_target = RenderTarget.TEACHING
+            if request.args.get('student_view'):
+                render_target = RenderTarget.RESPONDING
+            else:
+                render_target = RenderTarget.TEACHING
         else:
             render_target = RenderTarget.RESPONDING
         lesson_renderer = LessonRenderer(render_target=render_target)
@@ -185,6 +203,7 @@ blueprint = Blueprint('curriculum', __name__)
 
 api = FlaskRestfulApi(blueprint)
 api.add_resource(Courses, '/courses', '/course/<int:course_id>')
+api.add_resource(PdCourses, '/pd-courses')
 
 api.add_resource(Units, '/units', '/unit/<int:unit_id>')
 api.add_resource(LessonOrder, '/unit/order/<int:unit_id>')

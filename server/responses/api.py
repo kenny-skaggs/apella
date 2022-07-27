@@ -9,9 +9,13 @@ from responses import repository, service
 
 class Responses(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def get(cls, page_id):
-        responses = repository.AnswerRepository.answers_for_page(page_id)
+        user = auth.get_current_user()
+        responses = repository.AnswerRepository.answers_for_page(
+            page_id,
+            teacher_id=user.identity
+        )
         return {
             question_id: [answer.to_dict() for answer in answer_list]
             for question_id, answer_list in responses.items()
@@ -20,7 +24,7 @@ class Responses(Resource):
 
 class ResponseLockManagement(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def post(cls):
         json = request.json
         repository.AnswerRepository.updateResponseLock(
@@ -32,7 +36,7 @@ class ResponseLockManagement(Resource):
 
 class GradeRubricItem(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def post(cls, rubric_item_id, answer_id):
         json = request.json
         rubric_grade = service.rubric_item_graded(

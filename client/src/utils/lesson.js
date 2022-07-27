@@ -2,6 +2,14 @@ import * as d3 from "d3";
 
 const classSize = 10;
 
+function displayForStudent(student) {
+    if ( (student.first_name || student.last_name) !== null) {
+        return `${student.first_name} ${student.last_name}`
+    } else {
+        return student.username;
+    }
+}
+
 class ResponseMap {
     constructor(responseList) {
         this.map = {};
@@ -67,11 +75,11 @@ class ParagraphResponseDataView extends ResponseDataView{
                 const response = thisTracker.responseMap.get_response(student.id);
 
                 if (response === undefined) {
-                    return `<div class="name">${student.username}</div>`;
+                    return `<div class="name">${displayForStudent(student)}</div>`;
                 } else {
                     const lockIconClass = response.locked ? 'fa-lock' : 'fa-lock-open';
                     return `<div class="name">
-                                <span>${student.username}</span>
+                                <span>${displayForStudent(student)}</span>
                                 <i class="toggle-lock-btn fas ${lockIconClass}"></i>
                             </div>
                             <div class="answer"><span>${response.text}</span></div>`;
@@ -89,12 +97,17 @@ class InlineTextResponseDataView extends ResponseDataView {
             .data(Object.values(studentMap))
             .join('div')
             .attr('class', 'student-response inline-text')
+            .attr('student-id', (student) => student.id)
             .html(function(student) {
                 const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined) {
-                    return `<div class="name">${student.username}</div>`;
+                    return `<div class="name">${displayForStudent(student)}</div>`;
                 } else {
-                    return `<div class="name">${student.username}</div>
+                    const lockIconClass = response.locked ? 'fa-lock' : 'fa-lock-open';
+                    return `<div class="name">
+                                ${displayForStudent(student)}
+                                <i class="toggle-lock-btn fas ${lockIconClass}"></i>
+                            </div>
                             <div class="answer"><span>${response.text}</span></div>`;
                 }
             });
@@ -126,10 +139,10 @@ class InlineSelectResponseDataView extends ResponseDataView {
                 const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined || !response.selected_option_ids
                         || response.selected_option_ids.length === 0) {
-                    return `<div class="name">${student.username}</div>`;
+                    return `<div class="name">${displayForStudent(student)}</div>`;
                 } else {
                     let optionText = thisTracker.optionIdMap[response.selected_option_ids[0]];
-                    return `<div class="name">${student.username}</div>
+                    return `<div class="name">${displayForStudent(student)}</div>
                             <div class="answer"><span>${optionText}</span></div>`;
                 }
             });
@@ -182,14 +195,15 @@ class ChoiceResponseDataView extends ResponseDataView {
             .html(function(student) {
                 const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined || response.selected_option_ids.length === 0) {
-                    return `<div class="name">${student.username}</div>`;
+                    return `<div class="name">${displayForStudent(student)}</div>`;
                 } else {
                     let response_selections = ''
                     for (const optionId of response.selected_option_ids) {
+                        console.log(optionId);
                         response_selections += thisTracker.optionIndicatorMap[optionId];
                     }
                     const lockIconClass = response.locked ? 'fa-lock' : 'fa-lock-open';
-                    return `<div class="name">${student.username}</div>
+                    return `<div class="name">${displayForStudent(student)}</div>
                             <div class="flex-row">
                                 <i class="toggle-lock-btn fas ${lockIconClass}"></i>
                                 <div class="selection">
@@ -240,9 +254,9 @@ class RubricResponseDataView extends ResponseDataView {
             .html(function(student) {
                 const response = thisTracker.responseMap.get_response(student.id);
                 if (response === undefined) {
-                    return `<div class="name">${student.username}</div>`;
+                    return `<div class="name">${displayForStudent(student)}</div>`;
                 } else {
-                    return `<div class="name">${student.username}</div>
+                    return `<div class="name">${displayForStudent(student)}</div>
                             <div class="answer"><span>${response.text}</span></div>`;
                 }
             });

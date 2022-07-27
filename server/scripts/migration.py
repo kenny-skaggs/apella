@@ -418,6 +418,72 @@ def migrate_cfus(session):
     #     lesson.pages.reorder()
 
 
+def migrate_rubrics(session):
+    """
+    SELECT s.section_id as id, section_name as name, section_order as position, s.lesson_id, r.description rubric_content, max_range points
+    from rubric r
+    inner join `section` s on s.section_id = r.section_id and s.section_type = 'rubric'
+    inner join lesson l on s.lesson_id = l.lesson_id and l.active
+    where s.section_active;
+
+    select id, section_id page_id, description, weight_override points, `sequence` position
+    from rubric_item ri
+    where active;
+
+    SELECT s.section_id as id, section_name as name, section_order as position, s.lesson_id, p.description rubric_content
+    from project p
+    inner join `section` s on s.section_id = p.section_id and s.section_type = 'proj'
+    inner join lesson l on s.lesson_id = l.lesson_id and l.active
+    where s.section_active;
+    """
+    rubric_item_lists = defaultdict(list)
+    # for item_data in _get_file_data('rubric_item.csv'):
+    #     rubric_item_lists[item_data['page_id']].append(
+    #         curriculum_schema.RubricItem(
+    #             id=item_data['id'],
+    #             text=item_data['description'],
+    #             points=item_data['points'] or None,
+    #             position=item_data['position']
+    #         )
+    #     )
+
+    for rubric_data in _get_file_data('rubric.csv'):
+        rubric_page = curriculum_schema.Page(
+            id=rubric_data['id'],
+            name=rubric_data['name'],
+            html=rubric_data['rubric_content'],
+            position=rubric_data['position'],
+            lesson_id=rubric_data['lesson_id']
+        )
+        session.add(rubric_page)
+
+        rubric_items = rubric_item_lists[rubric_data['id']]
+        rubric_question = curriculum_schema.Question(
+            type=curriculum_model.QuestionType.RUBRIC,
+            page=rubric_page,
+            rubric_items=rubric_items
+        )
+        session.add(rubric_question)
+        session.flush()
+
+        item_list_json = json.dumps([
+            {
+                'id': item.id,
+                'text': item.text,
+                'points': item.points or rubric_data['points']
+            }
+            for item in rubric_items
+        ]).replace("'", '&#x27;')
+        rubric_page.html += f"""
+        <div class="wysiwyg_question question_rubric" contenteditable="false"
+            question_id="{rubric_question.id}" questionid="{rubric_question.id}"
+            rubric_items='{item_list_json}'
+        >
+            A project rubric will appear here.
+        </div>
+        """
+
+
 @app.command()
 def migrate():
     typer.echo('Running migration...')
@@ -436,7 +502,8 @@ def migrate():
         # migrate_classes(session)
         # migrate_student_classes(session)
         # migrate_learns(session)
-        migrate_cfus(session)
+        # migrate_cfus(session)
+        migrate_rubrics(session)
 
 
 if __name__ == '__main__':

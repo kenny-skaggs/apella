@@ -184,7 +184,9 @@ class PageRepository:
     def delete(cls, page_id, session):
         session.query(schema.Page).filter(
             schema.Page.id == page_id
-        ).delete()
+        ).update({
+            schema.Page.active: False
+        })
 
 
 class QuestionRepository:

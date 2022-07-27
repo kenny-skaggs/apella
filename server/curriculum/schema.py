@@ -89,7 +89,7 @@ class Lesson(BaseModel):
             name=self.name
         )
         if with_pages:
-            result.pages = [page.to_model() for page in self.pages]
+            result.pages = [page.to_model() for page in self.pages if page.active]
         if with_resources:
             result.resources = [resource_ref.resource.to_model() for resource_ref in self.resource_refs]
         return result
@@ -102,6 +102,8 @@ class Page(BaseModel):
     name = sa.Column(sa.String(200))
     html = sa.Column(sa.String(8000))
     position = sa.Column(sa.Integer)
+    active = sa.Column(sa.Boolean, server_default=sa.sql.expression.true(), nullable=False)
+
 
     lesson_id = sa.Column(sa.Integer, sa.ForeignKey(Lesson.id))
     lesson = relationship(Lesson, back_populates='pages')

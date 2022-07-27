@@ -1,9 +1,11 @@
 <template>
     <div class="columns">
         <div class="column is-3">
+            <b-button @click='showStudentModal = true'>New Student</b-button>
             <draggable :sort='false' :list='students' :group='{name: "classes", pull: "clone", put: false}'>
                 <div class="student" v-for='student in students' :key='student.id'>
-                    {{ student.username }}
+                    <span>{{ student.first_name }} {{ student.last_name }} ({{ student.email || student.username }})</span>
+                    <b-icon pack="fas" icon="edit" class="edit-btn" @click.native='editUser(student)' />
                 </div>
             </draggable>
         </div>
@@ -18,10 +20,36 @@
                 </div>
                 <b-button class="is-small" @click='editClass(cls)'>Edit</b-button>
                 <div class="student" v-for='student in cls.students' :key='student.id'>
-                    {{ student.username }}
+                    {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
                 </div>
             </draggable>
         </div>
+        <b-modal v-model='showStudentModal'>
+            <div>New Student</div>
+            <b-field label="First Name">
+                <b-input v-model='currentStudent.first_name'></b-input>
+            </b-field>
+            <b-field label="Last Name">
+                <b-input v-model='currentStudent.last_name'></b-input>
+            </b-field>
+            <b-field label="Google Sign-In">
+                <b-input v-model='currentStudent.email'></b-input>
+            </b-field>
+            <b-field label="Username">
+                <b-input v-model='currentStudent.username'></b-input>
+            </b-field>
+            <b-field label="Password">
+                <b-input v-model='currentStudent.password'
+                         placeholder='Type here to change password'
+                         type='password'
+                         autocomplete='new-password'
+                ></b-input>
+            </b-field>
+            <div class="buttons">
+                <b-button type="is-success" @click='submitStudent'>Save</b-button>
+                <b-button @click='closeStudentModal'>Cancel</b-button>
+            </div>
+        </b-modal>
         <b-modal v-model='showEditClassModal'>
             <div>Edit class</div>
             <b-field label="Name">
@@ -58,7 +86,9 @@ export default {
             classList: [],
             students: [],
             showEditClassModal: false,
-            courseList: []
+            courseList: [],
+            showStudentModal: false,
+            currentStudent: this.getStudentDataTemplate()
         }
     },
     created() {
@@ -99,8 +129,39 @@ export default {
                 this.closeClassModal();
             });
         },
+        submitStudent() {
+            this.$http.post('/users', this.currentStudent).then((response) => {
+                if (this.currentStudent.id === undefined) {
+                    this.currentStudent.id = response.data.id;
+                    this.students.push(...this.currentStudent);
+                } else {
+                    const editedStudent = this.students.find((student) => student.id === this.currentStudent.id);
+                    Object.assign(editedStudent, this.currentStudent);
+                }
+                this.currentStudent = this.getStudentDataTemplate();
+                this.showStudentModal = false;
+            });
+        },
         closeClassModal() {
             this.showEditClassModal = false;
+        },
+        closeStudentModal() {
+            this.showStudentModal = false;
+            this.currentStudent = this.getStudentDataTemplate();
+        },
+        editUser(student) {
+            this.currentStudent = {...student};
+            this.showStudentModal = true;
+        },
+        getStudentDataTemplate() {
+            return {
+                id: undefined,
+                first_name: '',
+                last_name: '',
+                email: '',
+                username: '',
+                password: ''
+            }
         },
         courseListDisplay(course_list) {
             return course_list.map((course) => course.name).join(', ');
@@ -126,8 +187,14 @@ export default {
 
 .student
     margin: 1em
-    padding: .5em
+    padding: 0.75em
     background: $grey
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+    .edit-btn:hover
+        cursor: pointer
 
 .class
     border: 1px solid $grey

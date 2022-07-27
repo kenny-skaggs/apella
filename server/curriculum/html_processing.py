@@ -60,7 +60,7 @@ class _HtmlProcessor(ABC):
 
     @classmethod
     def _get_question_id(cls, node: Tag):
-        return node.get('question_id')
+        return node.get('question_id') or node.get('questionid')
 
 
 class LessonRenderer(_HtmlProcessor):

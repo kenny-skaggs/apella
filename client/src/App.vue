@@ -6,21 +6,24 @@
                 </b-navbar-item>
             </template>
             <template #start>
-                <b-navbar-item v-if='userIsAuthor' :href='$router.resolve({ name: "school_management" }).href'>
+                <b-navbar-item v-if='shouldViewAuthorControls'
+                               :href='$router.resolve({ name: "school_management" }).href'>
                     Schools
                 </b-navbar-item>
-                <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "class_management" }).href'>
+                <b-navbar-item v-if='shouldViewTeachingControls'
+                               :href='$router.resolve({ name: "class_management" }).href'>
                     Classes
-                </b-navbar-item>
-                <b-navbar-item v-if='userIsTeacher' :href='$router.resolve({ name: "account_management" }).href'>
-                    Accounts
                 </b-navbar-item>
                 <b-navbar-item class="nav-bar-logo">
                 </b-navbar-item>
             </template>
             <template #end v-if='isLoggedIn'>
-                <b-navbar-item v-if='userIsTeacher'>
+                <b-navbar-item v-if='shouldViewTeachingControls'>
                     <ClassSelector/>
+                </b-navbar-item>
+                <b-navbar-item v-if='userIsAuthor'>
+                    <b-button @click='toggleTeacherView' v-if='$store.state.renderLessonAsTeacher'>Author View</b-button>
+                    <b-button @click='toggleTeacherView' v-else>Teacher View</b-button>
                 </b-navbar-item>
                 <b-navbar-dropdown>
                     <template #label>
@@ -115,7 +118,7 @@ export default {
     },
     methods: {
         logoutClicked() {
-            this.$store.commit('clearAuth');
+            this.$store.commit('clearState');
             this.$router.push({name: 'login'});
 
             // TODO: need to disconnect from socket server
@@ -126,6 +129,9 @@ export default {
                 type: 'is-danger',
                 position: 'is-bottom'
             })
+        },
+        toggleTeacherView() {
+            this.$store.commit('setRenderAsTeacher', !this.$store.state.renderLessonAsTeacher);
         }
     },
     computed: {

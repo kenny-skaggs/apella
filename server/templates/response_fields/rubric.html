@@ -12,13 +12,17 @@
                 </tr>
             {% endfor %}
         </table>
-        <hr>
+        {% if rubric_items %}
+            <hr>
+        {% endif %}
         <div class="submit-form field-body">
             <div class="field has-addons">
                 <div class="control">
-                    <input type="text" class="input rubric-input" {% if answer %} value="{{ answer.text }}" {% endif %} />
+                    <input type="text" class="input rubric-input"
+                           {% if answer %} value="{{ answer.text }}" {{ 'disabled="disabled"' if answer.locked else '' }} {% endif %}
+                    />
                 </div>
-                <button type="button" class="submit-btn button is-success">
+                <button type="button" class="submit-btn button is-success" {{ 'disabled="disabled"' if answer.locked else '' }}>
                     <span>Submit</span>
                 </button>
             </div>

@@ -4,8 +4,9 @@
                questionId="{{ question_id }}" answerType="text"
                value="{{ answer.text if answer and answer.text else '' }}"
                class="input short-answer-input inline-input"
+               {{ 'disabled="disabled"' if answer.locked else '' }}
         />
-        <button type="button" class="button inline-submit">
+        <button type="button" class="button inline-submit" {{ 'disabled="disabled"' if answer.locked else '' }}>
             Submit
         </button>
     </span>

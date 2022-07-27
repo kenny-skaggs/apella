@@ -48,11 +48,6 @@ const routes = [
     component: ClassManagement
   },
   {
-    name: 'account_management',
-    path: '/accounts',
-    component: Accounts
-  },
-  {
     name: 'school_management',
     path: '/schools',
     component: Schools

@@ -1,6 +1,7 @@
 
 from flask import Blueprint, request
 from flask_restful import Api, Resource
+from werkzeug.exceptions import NotFound
 
 import auth
 from core import Role
@@ -10,7 +11,7 @@ from organization import service, repository, model
 
 class Classes(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def get(cls, class_id=None):
         if class_id is None:
             class_list = repository.ClassRepository.get_classes_taught_by_user(
@@ -21,11 +22,17 @@ class Classes(Resource):
                 for apella_class in class_list
             ]
         else:
-            apella_class = repository.ClassRepository.get_class(class_id)
-            return apella_class.to_dict()
+            apella_class = repository.ClassRepository.get_class(
+                class_id,
+                teacher_id=auth.get_current_user().identity
+            )
+            if apella_class:
+                return apella_class.to_dict()
+            else:
+                raise NotFound()
 
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def post(cls, class_id=None):
         json = request.json
 
@@ -48,7 +55,7 @@ class Classes(Resource):
 
 class StudentClass(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def post(cls, class_id, student_id):
         repository.StudentClassRepository.assign_student_to_class(
             apella_class=class_id,
@@ -59,7 +66,7 @@ class StudentClass(Resource):
 
 class LessonClass(Resource):
     @classmethod
-    @auth.requires_roles(Role.TEACHER)
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
     def post(cls):
         json = request.json
         repository.LessonClassRepository.set_lesson_visibility(

@@ -1,19 +1,11 @@
 <template>
     <div>
-        <b-field grouped>
-            <b-field>
-                <b-input />
-                <p class="control">
-                    <b-button @click='showRubricModal'>Show rubric</b-button>
-                </p>
-            </b-field>
-        </b-field>
-
         <div v-html='lessonHtml' class="teacher-view"/>
         <RubricModal v-model='showRubric'
                      :rubric-items='currentRubricItems'
                      :student-map='currentStudentMap'
                      :response-map='currentResponseMap'
+                     @lockResponse='setResponseLocked'
         />
     </div>
 </template>
@@ -61,6 +53,11 @@ export default {
         }
     },
     mounted() {
+        this.$socket.$subscribe('connect', () => {
+            this.$socket.client.emit('identify', {
+                auth: this.$store.state.authToken
+            });
+        });
         this.$socket.client.connect();
 
         this.$http.get(`/organization/class/${this.$store.state.selectedClassId}`).then((response) => {
@@ -127,6 +124,9 @@ export default {
 
             .name
                 margin: 0.5em
+                display: flex
+                align-items: center
+                justify-content: space-between
 
             &.choice
                 display: flex

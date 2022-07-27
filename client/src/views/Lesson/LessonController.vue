@@ -1,17 +1,19 @@
 <template>
     <div class="columns is-gapless">
         <div class="column is-2">
-            <b-button @click='addNewPage' v-if='userIsAuthor'>Add Page</b-button>
+            <b-button @click='addNewPage' v-if='userIsAuthor && !userIsAuthorActingAsTeacher'>Add Page</b-button>
             <PageNavigation :pages='pages' @pageClicked='pageSelected' :selected-page-id='selectedPageId'
-                            @deletePage='deletePage' :editable='userIsAuthor' :lesson-id='lessonId'/>
+                            @deletePage='deletePage' :editable='userIsAuthor && !userIsAuthorActingAsTeacher'
+                            :lesson-id='lessonId'/>
         </div>
         <div class="column" v-if='selectedPage !== undefined'>
-            <LessonAuthor v-if='userIsAuthor'
+            <LessonAuthor v-if='userIsAuthor && !userIsAuthorActingAsTeacher'
                           :selected-page='selectedPage'
                           v-model='selectedPage.html'
                           @newId='(id) => this.selectedPageId = id'
             />
-            <LessonTeacher v-else-if='userIsTeacher' :lesson-html='selectedPage.html' :page-id='selectedPageId'/>
+            <LessonTeacher v-else-if='(userIsTeacher && !$store.state.viewAsPdCourse) || (userIsAuthor && userIsAuthorActingAsTeacher)'
+                           :lesson-html='selectedPage.html' :page-id='selectedPageId'/>
             <LessonStudent v-else :lesson-html='selectedPage.html'/>
         </div>
     </div>
@@ -43,6 +45,25 @@ export default {
             this.$http.delete(`/curriculum/page/${pageId}`).then(() => {
                 display.removeObject(this.pages, {id: pageId}, 'id');
             });
+        },
+        loadLesson() {
+            this.pages = [];
+
+            let lesson_url = `/curriculum/lesson/${this.lessonId}`;
+            if (this.userIsAuthor && this.userIsAuthorActingAsTeacher) {
+                lesson_url += '?teacher_view=1';
+            } else if (this.$store.state.viewAsPdCourse) {
+                lesson_url += '?student_view=1';
+            }
+            this.$http.get(lesson_url).then((response) => {
+                this.$store.commit('setActiveLesson', this.lessonId);
+
+                this.pages = response.data['pages'];
+
+                if (this.selectedPageId === undefined && this.pages.length > 0) {
+                    this.selectedPageId = this.pages[0].id;
+                }
+            });
         }
     },
     data() {
@@ -52,19 +73,16 @@ export default {
         }
     },
     created() {
-        this.$http.get(`/curriculum/lesson/${this.lessonId}`).then((response) => {
-            this.$store.commit('setActiveLesson', this.lessonId);
-
-            this.pages = response.data['pages'];
-
-            if (this.selectedPageId === undefined && this.pages.length > 0) {
-                this.selectedPageId = this.pages[0].id;
-            }
-        });
+        this.loadLesson();
     },
     computed: {
         selectedPage() {
             return this.pages.find((page) => page.id === this.selectedPageId);
+        }
+    },
+    watch: {
+        userIsAuthorActingAsTeacher() {
+            this.loadLesson();
         }
     },
     props: ['lessonId'],
@@ -95,8 +113,8 @@ export default {
             border-radius: 0.5em
 
 .inline-input
-    border-top-right-radius: 0  !important
-    border-bottom-right-radius: 0  !important
+    border-top-right-radius: 0 !important
+    border-bottom-right-radius: 0 !important
 
 .inline-submit
     border-top-left-radius: 0

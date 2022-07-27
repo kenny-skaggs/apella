@@ -42,6 +42,13 @@ export default  {
         save() {
             this.$emit('saveRubric')
         }
+    },
+    watch: {
+        showModal() {
+            if (this.showModal == false) {
+                this.$emit('closeModal');
+            }
+        }
     }
 }
 </script>

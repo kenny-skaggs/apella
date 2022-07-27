@@ -18,9 +18,16 @@
                 </div>
             </div>
             <div class="tile is-vertical is-parent">
-                <div class="tile is-child">
+                <div class="tile is-child" v-if='selectedStudentId'>
                     <iframe :src='currentResponse.text' title="student submission"></iframe>
                     <a :href='currentResponse.text' target="_blank">Open in new tab</a>
+                    <div>
+                        <b-button @click='toggleSubmissionLock'>
+                            <template v-if='currentResponse.locked'>Unlock</template>
+                            <template v-else>Lock</template>
+                            Submission
+                        </b-button>
+                    </div>
                 </div>
                 <div class="is-parent is-vertical grades-list">
                     <div class="tile is-child rubric-item-row" v-for='item in rubricItems' :key='item.id'>
@@ -110,6 +117,12 @@ export default {
                 )
             });
         },
+        toggleSubmissionLock() {
+            const shouldLock = !this.currentResponse.locked;
+            this.$emit('lockResponse', this.currentResponse.id, shouldLock, () => {
+                this.currentResponse.locked = shouldLock;
+            });
+        }
     },
     watch:{
         responseMap() {
@@ -130,6 +143,7 @@ export default {
 
     display: flex
     align-items: center
+    flex-direction: row
 
     .description
         flex-grow: 1

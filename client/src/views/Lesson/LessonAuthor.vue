@@ -20,7 +20,8 @@
                 <b-button @click='closeChoiceModal'>Cancel</b-button>
             </div>
         </b-modal>
-        <RubricModal :show-modal='showRubricModal' :rubricItems='rubricItems' @saveRubric='saveRubric' />
+        <RubricModal :show-modal='showRubricModal' :rubricItems='rubricItems' @saveRubric='saveRubric'
+                     @closeModal='showRubricModal = false' />
     </div>
 </template>
 

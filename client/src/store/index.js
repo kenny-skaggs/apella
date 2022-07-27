@@ -19,7 +19,10 @@ export default new Vuex.Store({
 
         activeCourse: undefined,
         activeUnit: undefined,
-        activeLesson: undefined
+        activeLesson: undefined,
+
+        renderLessonAsTeacher: false,
+        viewAsPdCourse: false
     },
     mutations: {
         setIsLoading (state, loading) {
@@ -29,9 +32,17 @@ export default new Vuex.Store({
             state.authToken = token;
             state.user = user;
         },
-        clearAuth (state) {
+        clearState (state) {
             state.authToken = undefined;
             state.user = undefined;
+            state.selectedClassId = undefined;
+
+            state.activeCourse = undefined;
+            state.activeUnit = undefined;
+            state.activeLesson = undefined;
+
+            state.renderLessonAsTeacher = false;
+            state.viewAsPdCourse = false;
         },
         setSelectedClass (state, class_id) {
             state.selectedClassId = class_id
@@ -62,6 +73,12 @@ export default new Vuex.Store({
         },
         clearCurrentLesson(state){
             state.activeLesson = undefined;
+        },
+        setRenderAsTeacher(state, renderAsTeacher){
+            state.renderLessonAsTeacher = renderAsTeacher;
+        },
+        setViewAsPdCourse(state, viewAsPdCourse) {
+            state.viewAsPdCourse = viewAsPdCourse;
         }
     },
     getters: {

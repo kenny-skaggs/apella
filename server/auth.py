@@ -33,7 +33,6 @@ guard = TokenGuard()
 def load_token_from_data(func):
     def wrapper(data):
         guard.set_token(data.get('auth'))
-        print(f'found "{data.get("auth")}" as token')
         func(data)
 
     return wrapper
@@ -41,6 +40,7 @@ def load_token_from_data(func):
 
 requires_login = flask_praetorian.auth_required
 requires_roles = flask_praetorian.roles_required
+allowed_roles = flask_praetorian.roles_accepted
 
 
 get_current_user = flask_praetorian.current_user

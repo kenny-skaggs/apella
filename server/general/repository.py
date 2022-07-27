@@ -110,6 +110,9 @@ class UserRepository:
         db_user.last_name = user.last_name
         db_user.email = user.email
 
+        if user.password:
+            db_user.password = user.password
+
         session.flush()
         return db_user.to_model()
 

@@ -3,18 +3,31 @@
         <div class="tile-container">
             <Tile v-for='course in courses' :key='course.id'
                   header-color="#fbc212"
-                  :editable='userIsAuthor' @edit='editCourse(course)'
-                  @click.native='courseSelected(course)'
+                  :editable='shouldViewAuthorControls' @edit='editCourse(course)'
+                  @click.native='courseSelected(course, false)'
             >
                 {{ course.name }}
             </Tile>
-            <Tile @click.native='newCourseClicked' v-if='userIsAuthor'>
+            <Tile @click.native='newCourseClicked' v-if='shouldViewAuthorControls'>
                 <div style="text-align: center">
                     <b-icon pack="fas" icon="plus-square" size="is-large"></b-icon>
                 </div>
                 Add Course
             </Tile>
         </div>
+        <template v-if='shouldViewTeachingControls && pdCourses.length > 0'>
+            <hr>
+            <h3>My Courses</h3>
+            <div class="tile-container">
+                <Tile v-for='course in pdCourses' :key='course.id'
+                      header-color="#fbc212"
+                      @click.native='courseSelected(course, true)'
+                >
+                    {{ course.name }}
+                </Tile>
+            </div>
+        </template>
+
         <EditItemModal :show-modal='showNewCourseModal' @submit='submitModal' @close='closeModal'>
             <b-field label="Name">
                 <b-input v-model='currentCourseEditing.name'></b-input>
@@ -57,9 +70,13 @@ export default {
             this.currentCourseEditing = {...course};
             this.showNewCourseModal = true;
         },
-        courseSelected(course) {
+        courseSelected(course, is_pd_course) {
             this.$store.commit('setActiveCourse', course)
             this.$router.push({name: 'course_detail', params: {courseId: course.id}});
+
+            if (is_pd_course) {
+                this.$store.commit('setViewAsPdCourse', is_pd_course);
+            }
         }
     },
     data() {
@@ -67,16 +84,23 @@ export default {
             showNewCourseModal: false,
             courseTemplate: {id: undefined, name: ''},
             currentCourseEditing: {id: undefined, name: ''},
-            courses: []
+            courses: [],
+            pdCourses: []
         }
     },
     mounted() {
         this.$http.get('/curriculum/courses').then((response) => {
             this.courses = response.data;
         });
+        if (this.shouldViewTeachingControls) {
+            this.$http.get('/curriculum/pd-courses').then((response) => {
+                this.pdCourses = response.data;
+            });
+        }
     },
     beforeUpdate() {
         this.$store.commit('clearCurrentCourse');
+        this.$store.commit('setViewAsPdCourse', false);
     },
     components: {
         EditItemModal, Tile

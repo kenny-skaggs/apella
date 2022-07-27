@@ -8,13 +8,21 @@ import DebounceMixin from "../../mixins/DebounceMixin";
 export default {
     name: 'LessonStudent',
     methods: {
-        answerSelected(questionId, answer, submitted) {
+        answerSelected(questionId, answer, submitted, $questionElement) {
             this.debounce(questionId, () => {
                 this.$socket.client.emit('response_provided', {
                     questionId: questionId,
                     answer: answer,
                     submitted: submitted,
                     auth: this.$store.state.authToken
+                }, () => {
+                    if (submitted) {
+                        $questionElement.addClass('locked');
+                        $questionElement.find('.submit-btn').attr('disabled', 'disabled');
+                        $questionElement.find('.inline-submit').attr('disabled', 'disabled');
+                        $questionElement.find('textarea').attr('disabled', 'disabled');
+                        $questionElement.find('input').attr('disabled', 'disabled');
+                    }
                 });
             });
         },
@@ -24,7 +32,7 @@ export default {
             // TODO: when submitting an answer, need to display something if it fails
 
             const answerIds = $questionElement.find('.question-choice.selected').map((index, element) => $(element).attr('option-id'));
-            this.answerSelected(questionId, answerIds.get(), submitAnswer);
+            this.answerSelected(questionId, answerIds.get(), submitAnswer, $questionElement);
         }
     },
     created() {
@@ -40,22 +48,22 @@ export default {
             const questionId = $questionElement.attr('questionId');
             const $textAreaInput = $questionElement.find('textarea');
 
-            this.answerSelected(questionId, $textAreaInput.val(), true);
+            this.answerSelected(questionId, $textAreaInput.val(), true, $questionElement);
         });
 
         $('body').on('click', '.apella-inline.text .inline-submit', ({target}) => {
             const $container = $(target).closest('.apella-inline');
             const $input = $container.find('input');
 
-            this.answerSelected($input.attr('questionid'), $input.val(), true);
+            this.answerSelected($input.attr('questionid'), $input.val(), true, $container);
         });
 
-        $('body').on('click', '.apella-inline.dropdown .inline-submit', ({target}) => {
-            const $container = $(target).closest('.apella-inline');
-            const $input = $container.find('select');
-
-            this.answerSelected($input.attr('questionid'), $input.val(), true);
-        });
+        // $('body').on('click', '.apella-inline.dropdown .inline-submit', ({target}) => {
+        //     const $container = $(target).closest('.apella-inline');
+        //     const $input = $container.find('select');
+        //
+        //     this.answerSelected($input.attr('questionid'), $input.val(), true);
+        // });
 
         $('body').on('click', '.apella-question.choice .question-choice', ({target}) => {
             $(target).closest('.question-choice').toggleClass('selected');
@@ -63,8 +71,6 @@ export default {
         });
         $('body').on('click', '.apella-question.choice .submit-btn', ({target}) => {
             this.sendChoiceAnswer($(target).closest('.apella-question'), true);
-
-            // TODO: disable after submit
         });
 
         $('body').on('click', '.apella-question.rubric .submit-btn', ({target}) => {
@@ -72,7 +78,7 @@ export default {
             const questionId = $questionElement.attr('questionId');
             const projectInput = $questionElement.find('.rubric-input');
 
-            this.answerSelected(questionId, projectInput.val(), true);
+            this.answerSelected(questionId, projectInput.val(), true, $questionElement);
         })
     },
     mounted() {

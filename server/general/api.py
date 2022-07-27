@@ -56,7 +56,10 @@ class Users(Resource):
         if 'student' in user.rolenames:
             return 404
         elif 'author' in user.rolenames:
-            return []
+            return [
+                user.to_dict() for user in
+                repository.UserRepository.get_all_users(role_filter=Role.TEACHER)
+            ]
         elif 'teacher' in user.rolenames:
             return [
                 user.to_dict() for user in
@@ -64,19 +67,37 @@ class Users(Resource):
             ]
 
     @classmethod
-    @auth.requires_login
-    def post(cls, user_id=None):
-        # TODO: check for teacher role if creating students, check for author role if creating teachers
+    @auth.requires_roles(Role.TEACHER)
+    def post(cls, request_user_id=None):
+        # creating students
+
+        # get the teacher's school, if there are more than one then throw an error
+        # todo: implement multi-school teacher functionality for adding students
+        user = auth.get_current_user()
+        teacher_school = organization_repository.SchoolRepository.school_for_user(
+            user_id=user.identity
+        )
 
         json = request.json
         user = model.User(
-            id=user_id,
+            id=request_user_id or json.get('id'),
             username=json.get('username'),
             email=json.get('email'),
-            first_name=json.get('firstName'),
-            last_name=json.get('lastName')
+            first_name=json.get('first_name'),
+            last_name=json.get('last_name'),
+            roles=['student']
         )
-        return repository.UserRepository.upsert(user).to_dict()
+        if 'password' in json:
+            user.password = auth.guard.hash_password(json.get('password'))
+        upserted_user = repository.UserRepository.upsert(user).to_dict()
+
+        if request_user_id is None:
+            organization_repository.SchoolRepository.link_user(
+                user_id=upserted_user['id'],
+                school_id=teacher_school.id
+            )
+
+        return upserted_user
 
 
 class TeacherSearch(Resource):

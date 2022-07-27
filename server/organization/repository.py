@@ -10,9 +10,19 @@ from organization import schema, model
 class ClassRepository:
     @classmethod
     @needs_session
-    def get_class(cls, class_id, session: Session):
-        db_class = session.query(schema.Class).filter(schema.Class.id == class_id).one_or_none()
-        return db_class.to_model(with_students=True)
+    def get_class(cls, class_id, teacher_id, session: Session):
+        db_class = (
+            session.query(schema.Class)
+            .join(schema.Class.teaching_user_refs)
+            .filter(
+                schema.Class.id == class_id,
+                schema.TeacherClass.user_id == teacher_id
+            ).one_or_none()
+        )
+        if db_class is None:
+            return None
+        else:
+            return db_class.to_model(with_students=True)
 
     @classmethod
     @needs_session
@@ -24,6 +34,17 @@ class ClassRepository:
             db_class.to_model(with_students=True, with_courses=True)
             for db_class in db_classes
         ]
+
+    @classmethod
+    @needs_session
+    def get_classes_attended_by_user(cls, user_id, session: Session):
+        db_classes: Sequence[schema.Class] = (
+            session.query(schema.Class)
+            .join(schema.StudentClass).filter(
+                schema.StudentClass.user_id == user_id
+            )
+        ).all()
+        return [db_class.to_model() for db_class in db_classes]
 
     @classmethod
     @needs_session
@@ -114,6 +135,18 @@ class SchoolRepository:
             return None
         else:
             return result.to_model(with_courses=True, with_teachers=True)
+
+    @classmethod
+    @needs_session
+    def school_for_user(cls, user_id, session: Session) -> Optional[model.School]:
+        result = session.query(
+            schema.School
+        ).join(
+            schema.SchoolUser
+        ).filter(
+            schema.SchoolUser.user_id == user_id
+        ).one()
+        return result.to_model()
 
     @classmethod
     @needs_session

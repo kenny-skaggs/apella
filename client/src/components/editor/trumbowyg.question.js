@@ -26,7 +26,7 @@ const buildPlugin = function ($) {
         {
             id: 'question_rubric',
             display: 'Project Rubric',
-            template: '<div>A project rubric will appear here.</div>'
+            template: '<div rubric-items="[]">A project rubric will appear here.</div>'
         }
     ]
 

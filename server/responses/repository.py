@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from core import needs_session
 from curriculum import schema as curriculum_schema
+from general import schema as general_schema
+from organization import schema as organization_schema
 from responses import schema, model
 
 
@@ -30,18 +32,28 @@ class AnswerRepository:
 
     @classmethod
     @needs_session
-    def answers_for_page(cls, page_id, session: Session):
-        answers: Sequence[schema.Answer] = (
+    def answers_for_page(cls, page_id, teacher_id, session: Session):
+        question_id_list = (
+            session.query(curriculum_schema.Question.id)
+            .filter(curriculum_schema.Question.page_id == page_id)
+        ).all()
+        question_id_list = [obj.id for obj in question_id_list]
+
+        answer_list: Sequence[schema.Answer] = (
             session.query(schema.Answer)
-            .join(curriculum_schema.Question)
-            .join(curriculum_schema.Page)
+            .join(schema.Answer.user)
+            .join(general_schema.User.student_class_refs)
+            .join(organization_schema.StudentClass.cls)
+            .join(organization_schema.Class.teaching_user_refs)
             .filter(
-                curriculum_schema.Page.id == page_id
+                schema.Answer.question_id.in_(question_id_list),
+                organization_schema.TeacherClass.user_id == teacher_id,
+                schema.Answer.submitted
             )
         )
 
-        question_answer_map = defaultdict(lambda: list())
-        for answer in answers:
+        question_answer_map = {question_id: [] for question_id in question_id_list}
+        for answer in answer_list:
             question_answer_map[answer.question_id].append(answer.to_model())
 
         return question_answer_map
