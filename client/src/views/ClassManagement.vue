@@ -2,27 +2,31 @@
     <div class="columns">
         <div class="column is-3">
             <b-button @click='showStudentModal = true'>New Student</b-button>
-            <draggable :sort='false' :list='students' :group='{name: "classes", pull: "clone", put: false}'>
-                <div class="student" v-for='student in students' :key='student.id'>
-                    <span>{{ student.first_name }} {{ student.last_name }} ({{ student.email || student.username }})</span>
-                    <b-icon pack="fas" icon="edit" class="edit-btn" @click.native='editUser(student)' />
-                </div>
-            </draggable>
+            <div class="student-list">
+                <draggable :sort='false' :list='students' :group='{name: "classes", pull: "clone", put: false}'>
+                    <div class="student" v-for='student in students' :key='student.id'>
+                        <span>{{ student.first_name }} {{ student.last_name }} ({{ student.email || student.username }})</span>
+                        <b-icon pack="fas" icon="edit" class="edit-btn" @click.native='editUser(student)' />
+                    </div>
+                </draggable>
+            </div>
         </div>
         <div class="column">
             <b-button @click='newClassClicked'>New Class</b-button>
-            <draggable v-for='cls in classList' class="class" :sort='false' :list='cls.students' group="classes"
-                       :key='cls.id'
-                       @change='(event) => classListChanged(event, cls)'>
-                <h2>{{ cls.name }}</h2>
-                <div>
-                    Courses: {{ courseListDisplay(cls.course_list) }}
-                </div>
-                <b-button class="is-small" @click='editClass(cls)'>Edit</b-button>
-                <div class="student" v-for='student in cls.students' :key='student.id'>
-                    {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
-                </div>
-            </draggable>
+            <div class="class-list">
+                <draggable v-for='cls in classList' class="class" :sort='false' :list='cls.students' group="classes"
+                           :key='cls.id'
+                           @change='(event) => classListChanged(event, cls)'>
+                    <h2>{{ cls.name }}</h2>
+                    <div>
+                        Courses: {{ courseListDisplay(cls.course_list) }}
+                    </div>
+                    <b-button class="is-small" @click='editClass(cls)'>Edit</b-button>
+                    <div class="student" v-for='student in cls.students' :key='student.id'>
+                        {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
+                    </div>
+                </draggable>
+            </div>
         </div>
         <b-modal v-model='showStudentModal'>
             <div>New Student</div>
@@ -200,6 +204,16 @@ export default {
     border: 1px solid $grey
     margin: 2em
     padding: 1em
+
+.class-list
+    overflow: scroll
+    max-height: calc(100vh - 155px)
+    margin-top: 0.5em
+
+.student-list
+    overflow: scroll
+    max-height: calc(100vh - 155px)
+    margin-top: 0.5em
 
 .is-selected
     background: $grey !important
