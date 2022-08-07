@@ -63,6 +63,15 @@ class StudentClass(Resource):
         )
         return 200
 
+    @classmethod
+    @auth.allowed_roles(Role.TEACHER, Role.AUTHOR)
+    def delete(cls, student_id, class_id):
+        repository.StudentClassRepository.remove_student_class(
+            student_id=student_id,
+            class_id=class_id
+        )
+        return 200
+
 
 class LessonClass(Resource):
     @classmethod
@@ -143,7 +152,11 @@ blueprint = Blueprint('organization', __name__)
 
 api = Api(blueprint)
 api.add_resource(Classes, '/classes', '/class/<int:class_id>')
-api.add_resource(StudentClass, '/class/<int:class_id>/student/<int:student_id>')
+api.add_resource(
+    StudentClass,
+    '/class/<int:class_id>/student/<int:student_id>',
+    '/student-class/<int:student_class_id>'
+)
 api.add_resource(SchoolApi, '/schools', '/school/<int:school_id>')
 api.add_resource(SchoolCourseApi, '/school-course', '/school/<int:school_id>/course/<int:course_id>')
 api.add_resource(SchoolTeacherApi, '/school-teacher', '/school/<int:school_id>/teacher/<int:user_id>')

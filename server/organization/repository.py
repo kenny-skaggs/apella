@@ -98,6 +98,16 @@ class StudentClassRepository:
         session.add(student_class)
         # todo: there should be a way to make sure there aren't a bunch of duplicates
 
+    @classmethod
+    @needs_session
+    def remove_student_class(cls, student_id, class_id, session: Session):
+        session.query(
+            schema.StudentClass
+        ).filter(
+            schema.StudentClass.user_id == student_id,
+            schema.StudentClass.class_id == class_id
+        ).delete()
+
 
 class LessonClassRepository:
     @classmethod

@@ -19,7 +19,15 @@ function removeObject(objectList, objectToRemove, idProperty) {
     }
 }
 
+function removeById(objectList, idProperty, id) {
+    const index = objectList.findIndex((object) => object[idProperty] === id);
+    if (index >= 0) {
+        objectList.splice(index, 1);
+    }
+}
+
 export default {
     sortedObjects,
-    removeObject
+    removeObject,
+    removeById
 };

@@ -14,18 +14,23 @@
         <div class="column">
             <b-button @click='newClassClicked'>New Class</b-button>
             <div class="class-list">
-                <draggable v-for='cls in classList' class="class" :sort='false' :list='cls.students' group="classes"
-                           :key='cls.id'
-                           @change='(event) => classListChanged(event, cls)'>
-                    <h2>{{ cls.name }}</h2>
-                    <div>
-                        Courses: {{ courseListDisplay(cls.course_list) }}
+                <div class="class" v-for='cls in classList' :key='cls.id'>
+                    <div class="class-header">
+                        <h2>{{ cls.name }}</h2>
+                        <div>
+                            Courses: {{ courseListDisplay(cls.course_list) }}
+                        </div>
                     </div>
                     <b-button class="is-small" @click='editClass(cls)'>Edit</b-button>
-                    <div class="student" v-for='student in cls.students' :key='student.id'>
-                        {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
-                    </div>
-                </draggable>
+                    <draggable :sort='false' :list='cls.students' group="classes"
+                               @change='(event) => classListChanged(event, cls)'
+                    >
+                        <div class="student" v-for='student in cls.students' :key='student.id'>
+                            {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
+                            <b-button type="is-danger" @click='removeStudentClass(cls.id, student.id, cls.students)'>remove</b-button>
+                        </div>
+                    </draggable>
+                </div>
             </div>
         </div>
         <b-modal v-model='showStudentModal'>
@@ -109,6 +114,11 @@ export default {
     methods: {
         classListChanged({added}, cls) {
             this.$http.post(`/organization/class/${cls.id}/student/${added.element.id}`)
+        },
+        removeStudentClass(classId, studentId, studentClassList) {
+            this.$http.delete(`/organization/class/${classId}/student/${studentId}`).then(() => {
+                display.removeById(studentClassList, 'id', studentId);
+            });
         },
         newClassClicked() {
             this.classEditing = {...this.classTemplate};
@@ -214,6 +224,15 @@ export default {
     overflow: scroll
     max-height: calc(100vh - 155px)
     margin-top: 0.5em
+
+    .student
+        cursor: move
+
+.class-header
+    position: sticky
+    top: 0
+    background: white
+    z-index: 5
 
 .is-selected
     background: $grey !important
